@@ -471,3 +471,42 @@ Display locations:
 - Compare page: Badge next to each country in stats
 
 **Type:** feature
+
+
+---
+
+## [2026-01-07] - Compare Page Mobile Optimization
+
+**Files affected:**
+- src/app/compare/page.tsx
+- src/app/globals.css
+
+**Description:**
+Improved mobile responsiveness for the comparison page:
+
+Statistics section:
+- Country stats now stack vertically on mobile
+- Travel advisory badge wraps properly
+- Stats bar takes full width
+
+Filters section:
+- View toggle buttons expand to full width on mobile
+- Category select is full width
+- Share button and count in same row
+
+Grouped view:
+- Topic name takes full width with badge inline
+- Country cards stack in responsive grid (1 col mobile, 2 col tablet, 3-5 col desktop)
+- Country name shown in each card for clarity
+
+Table view:
+- Horizontal scroll with touch support
+- Smaller column widths for mobile
+- Topic names with line-clamp
+
+CSS additions:
+- Scrollbar styling for better UX
+- Disabled card hover transform on mobile
+- Line clamp utilities
+
+**Type:** fix
