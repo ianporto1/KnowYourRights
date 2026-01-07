@@ -629,3 +629,59 @@ User Flow:
 
 **Type:** feature
 
+
+
+---
+
+## [2026-01-07] - Admin Moderation System
+
+**Files affected:**
+- src/app/admin/entries/page.tsx (rewritten)
+- src/app/admin/moderation/page.tsx (new)
+- src/app/admin/layout.tsx
+- src/app/api/admin/entries/route.ts (new)
+- src/app/api/admin/moderation/route.ts (new)
+- src/app/api/admin/validate-entry/route.ts (new)
+- src/app/api/admin/standard-topics/route.ts (new)
+- src/lib/rag.ts
+- Supabase: standard_topics table (new)
+- Supabase: entry_audit_log table (new)
+- Supabase: cartilha_entries (new columns)
+- Supabase: search_entries_hybrid function (new)
+
+**Description:**
+Complete overhaul of admin entry system with moderation and validation:
+
+Database changes:
+- standard_topics table with 50+ predefined topics per category
+- entry_audit_log table for tracking all changes
+- New columns on cartilha_entries: moderation_status, moderation_note, moderated_at, moderated_by, source, confidence_score
+- Hybrid search function combining full-text and ILIKE search
+
+Validation system:
+- Required field validation (country, category, topic, status, legal_basis, explanation)
+- Minimum length requirements
+- Blocked words detection (spam, test, etc.)
+- Quality warnings (too long, placeholder text)
+- Standard topic suggestions based on keywords
+
+Moderation workflow:
+- New entries can be set to 'pending' status
+- Dedicated moderation page with queue
+- Bulk approve/reject functionality
+- Rejection notes for feedback
+- Stats dashboard (pending/approved/rejected counts)
+
+Entry creation improvements:
+- Standard topics dropdown per category
+- Real-time validation feedback
+- Similarity detection (unchanged)
+- Audit logging for all CRUD operations
+
+RAG improvements:
+- Hybrid search using PostgreSQL full-text search
+- Only returns approved entries
+- Fallback to simple ILIKE if hybrid fails
+- Better relevance scoring
+
+**Type:** feature

@@ -100,7 +100,7 @@ export function detectCountries(message: string): string[] {
 }
 
 /**
- * Query Supabase for relevant entries based on keywords
+ * Query Supabase for relevant entries using hybrid search
  */
 export async function queryRAG(
   keywords: string[],
@@ -108,7 +108,64 @@ export async function queryRAG(
   detectedCountries?: string[]
 ): Promise<RAGResult['entries']> {
   try {
-    // Build the query
+    // Determine target country
+    const targetCountry = detectedCountries?.length
+      ? detectedCountries[0]
+      : countryCode?.toUpperCase() || null;
+
+    // Build search query from keywords
+    const searchQuery = keywords.slice(0, 5).join(' ');
+
+    // Use hybrid search function for better results
+    const { data, error } = await supabase.rpc('search_entries_hybrid', {
+      search_query: searchQuery || null,
+      filter_country: targetCountry,
+      filter_category_id: null,
+      result_limit: 10,
+    });
+
+    if (error) {
+      console.error('RAG hybrid search error:', error);
+      // Fallback to simple query
+      return queryRAGFallback(keywords, targetCountry);
+    }
+
+    if (!data || data.length === 0) {
+      // Try fallback if no results
+      return queryRAGFallback(keywords, targetCountry);
+    }
+
+    return data.map((entry: {
+      country_code: string;
+      country_name: string;
+      topic: string;
+      status: string;
+      plain_explanation: string;
+      legal_basis: string;
+      cultural_note: string | null;
+    }) => ({
+      country_code: entry.country_code,
+      country_name: entry.country_name,
+      topic: entry.topic,
+      status: entry.status,
+      plain_explanation: entry.plain_explanation,
+      legal_basis: entry.legal_basis,
+      cultural_note: entry.cultural_note,
+    }));
+  } catch (err) {
+    console.error('RAG query exception:', err);
+    return [];
+  }
+}
+
+/**
+ * Fallback query when hybrid search fails
+ */
+async function queryRAGFallback(
+  keywords: string[],
+  targetCountry: string | null
+): Promise<RAGResult['entries']> {
+  try {
     let query = supabase
       .from('cartilha_entries')
       .select(`
@@ -120,39 +177,27 @@ export async function queryRAG(
         cultural_note,
         countries!inner(name)
       `)
+      .eq('moderation_status', 'approved')
       .limit(10);
 
-    // Filter by country if specified
-    const targetCountries = detectedCountries?.length
-      ? detectedCountries
-      : countryCode
-      ? [countryCode.toUpperCase()]
-      : null;
-
-    if (targetCountries) {
-      query = query.in('country_code', targetCountries);
+    if (targetCountry) {
+      query = query.eq('country_code', targetCountry);
     }
 
-    // Search in topic and explanation using OR conditions (only if we have keywords)
     if (keywords.length > 0) {
       query = query.or(`topic.ilike.%${keywords[0]}%,plain_explanation.ilike.%${keywords[0]}%`);
     }
-    // If we have countries but no keywords, just get some entries from those countries
-    // (the query will return results filtered by country)
+
     const { data, error } = await query;
 
     if (error) {
-      console.error('RAG query error:', error);
+      console.error('RAG fallback error:', error);
       return [];
     }
 
-    // Transform and score results
-    const results = (data || []).map((entry) => {
-      // Handle countries relation - can be array or single object depending on query
+    return (data || []).map((entry) => {
       const countries = entry.countries as { name: string } | { name: string }[] | null;
-      const countryName = Array.isArray(countries) 
-        ? countries[0]?.name 
-        : countries?.name;
+      const countryName = Array.isArray(countries) ? countries[0]?.name : countries?.name;
       
       return {
         country_code: entry.country_code,
@@ -164,24 +209,8 @@ export async function queryRAG(
         cultural_note: entry.cultural_note,
       };
     });
-
-    // Score by keyword matches
-    const scored = results.map((entry) => {
-      let score = 0;
-      const text = `${entry.topic} ${entry.plain_explanation}`.toLowerCase();
-      for (const keyword of keywords) {
-        if (text.includes(keyword)) score++;
-      }
-      return { ...entry, score };
-    });
-
-    // Sort by score and return top results
-    return scored
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5)
-      .map(({ score, ...entry }) => entry);
   } catch (err) {
-    console.error('RAG query exception:', err);
+    console.error('RAG fallback exception:', err);
     return [];
   }
 }

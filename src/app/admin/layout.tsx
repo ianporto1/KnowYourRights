@@ -8,6 +8,7 @@ import { useState } from 'react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
+  { href: '/admin/moderation', label: 'Moderação', icon: '✅' },
   { href: '/admin/countries', label: 'Países', icon: '🌍' },
   { href: '/admin/categories', label: 'Categorias', icon: '📁' },
   { href: '/admin/entries', label: 'Entradas', icon: '📝' },
