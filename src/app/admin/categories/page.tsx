@@ -24,7 +24,9 @@ export default function AdminCategoriesPage() {
     setCategories(data || []);
     
     // Get entry counts per category
-    const { data: entries } = await supabase.from('cartilha_entries').select('category_id');
+    const { data: entries } = await supabase
+      .from('cartilha_entries')
+      .select('category_id') as { data: { category_id: number }[] | null };
     const counts: Record<number, number> = {};
     entries?.forEach((e) => {
       counts[e.category_id] = (counts[e.category_id] || 0) + 1;
