@@ -78,8 +78,8 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen p-6 md:p-8 max-w-5xl mx-auto relative">
-      <div className="absolute top-4 right-4">
+    <main className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto relative">
+      <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>
 
@@ -90,16 +90,16 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+      <div className="text-center mb-8 lg:mb-12">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent tracking-tight">
           🌍 Global Rights Guide
         </h1>
-        <p className="text-lg text-gray-500 dark:text-gray-400">
+        <p className="text-base lg:text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
           Descubra o que é permitido, tolerado ou proibido em cada país
         </p>
       </div>
 
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-6 lg:mb-8">
         <div className="view-toggle">
           <button
             className={`view-toggle-btn ${viewMode === 'globe' ? 'active' : ''}`}
@@ -117,7 +117,7 @@ export default function Home() {
       </div>
 
       {viewMode === 'globe' && !loading && (
-        <div className="mb-8">
+        <div className="mb-8 lg:mb-12">
           <InteractiveGlobe
             countries={countries}
             stats={stats}
@@ -128,18 +128,18 @@ export default function Home() {
 
       {viewMode === 'grid' && (
         <>
-          <div className="space-y-4 mb-8">
+          <div className="space-y-4 mb-8 lg:mb-10">
             <input
               type="text"
               placeholder="🔍 Buscar país..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="search-input"
+              className="search-input search-input-lg"
             />
 
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="flex-1 min-w-[200px] w-full sm:w-auto">
+                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">
                   Índice de liberdade: {freedomRange[0]} - {freedomRange[1]}
                 </label>
                 <div className="flex gap-2 items-center">
@@ -149,7 +149,7 @@ export default function Home() {
                     max="10"
                     value={freedomRange[0]}
                     onChange={(e) => setFreedomRange([Number(e.target.value), freedomRange[1]])}
-                    className="flex-1"
+                    className="flex-1 accent-indigo-500"
                   />
                   <input
                     type="range"
@@ -157,19 +157,19 @@ export default function Home() {
                     max="10"
                     value={freedomRange[1]}
                     onChange={(e) => setFreedomRange([freedomRange[0], Number(e.target.value)])}
-                    className="flex-1"
+                    className="flex-1 accent-indigo-500"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-1">
+              <div className="w-full sm:w-auto">
+                <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2">
                   Ordenar por
                 </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-medium cursor-pointer hover:border-indigo-500 transition-colors"
                 >
                   <option value="name">Nome</option>
                   <option value="freedom_desc">Mais livre</option>
@@ -180,34 +180,33 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="flex flex-wrap justify-center gap-4 mb-10">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="w-20 h-24 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 lg:gap-4 mb-10">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="skeleton h-24 rounded-xl" />
               ))}
             </div>
           ) : (
-            <div className="flex flex-wrap justify-center gap-4 mb-10">
-              {filtered.map((country, i) => {
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 lg:gap-4 mb-10 stagger-children">
+              {filtered.map((country) => {
                 const countryStats = stats[country.code] || { green: 0, yellow: 0, red: 0 };
                 return (
                   <Link
                     key={country.code}
                     href={`/${country.code.toLowerCase()}`}
-                    className="group relative flex flex-col items-center p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 hover:shadow-lg transition-all animate-fade-in"
-                    style={{ animationDelay: `${i * 0.05}s` }}
+                    className="group relative flex flex-col items-center p-3 lg:p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-indigo-500 hover:shadow-lg transition-all card-interactive"
                     title={`${country.name} - Índice: ${country.freedom_index}/10`}
                   >
                     <img
                       src={`https://flagcdn.com/w80/${country.code.toLowerCase()}.png`}
                       alt={`Bandeira ${country.name}`}
-                      className="w-12 h-8 object-cover rounded mb-1 group-hover:scale-110 transition-transform"
+                      className="w-12 h-8 lg:w-14 lg:h-10 object-cover rounded mb-2 group-hover:scale-110 transition-transform shadow-sm"
                     />
                     
-                    <span className="text-xs font-medium text-center text-gray-700 dark:text-gray-300 max-w-[80px] truncate">
+                    <span className="text-xs lg:text-sm font-medium text-center text-gray-700 dark:text-gray-300 max-w-[80px] lg:max-w-[100px] truncate">
                       {country.name}
                     </span>
                     
-                    <div className="flex gap-0.5 mt-1">
+                    <div className="flex gap-1 mt-1.5">
                       {countryStats.green > 0 && (
                         <span className="w-2 h-2 rounded-full bg-green-500" title={`${countryStats.green} permitidos`} />
                       )}
@@ -220,7 +219,7 @@ export default function Home() {
                     </div>
 
                     <div 
-                      className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                      className="absolute -bottom-1 -right-1 w-5 h-5 lg:w-6 lg:h-6 rounded-full flex items-center justify-center text-[10px] lg:text-xs font-bold text-white shadow-md"
                       style={{ background: getFreedomColor(country.freedom_index) }}
                       title={`Índice de liberdade: ${country.freedom_index}/10`}
                     >
@@ -233,16 +232,16 @@ export default function Home() {
           )}
 
           {!loading && filtered.length === 0 && (
-            <div className="text-center py-12 card">
-              <span className="text-4xl mb-4 block">🔍</span>
-              <p className="text-gray-500 dark:text-gray-400">Nenhum país encontrado com esses filtros</p>
+            <div className="text-center py-12 lg:py-16 card">
+              <span className="text-4xl lg:text-5xl mb-4 block">🔍</span>
+              <p className="text-gray-500 dark:text-gray-400 text-base lg:text-lg">Nenhum país encontrado com esses filtros</p>
             </div>
           )}
         </>
       )}
 
-      <div className="text-center mt-8">
-        <Link href="/compare" className="btn btn-primary inline-block">
+      <div className="text-center mt-8 lg:mt-12">
+        <Link href="/compare" className="btn btn-primary inline-flex text-base lg:text-lg px-8 py-3">
           🔄 Comparar países
         </Link>
       </div>
