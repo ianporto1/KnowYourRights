@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { performRAG } from '@/lib/rag';
 
+// Force dynamic rendering - don't prerender this route
+export const dynamic = 'force-dynamic';
+
 // Rate limiting - simple in-memory store (use Redis in production)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT = 20; // requests per window
