@@ -107,78 +107,82 @@ export async function queryRAG(
   countryCode?: string,
   detectedCountries?: string[]
 ): Promise<RAGResult['entries']> {
-  // Build the query
-  let query = supabase
-    .from('cartilha_entries')
-    .select(`
-      country_code,
-      topic,
-      status,
-      plain_explanation,
-      legal_basis,
-      cultural_note,
-      countries!inner(name)
-    `)
-    .limit(10);
+  try {
+    // Build the query
+    let query = supabase
+      .from('cartilha_entries')
+      .select(`
+        country_code,
+        topic,
+        status,
+        plain_explanation,
+        legal_basis,
+        cultural_note,
+        countries!inner(name)
+      `)
+      .limit(10);
 
-  // Filter by country if specified
-  const targetCountries = detectedCountries?.length
-    ? detectedCountries
-    : countryCode
-    ? [countryCode.toUpperCase()]
-    : null;
+    // Filter by country if specified
+    const targetCountries = detectedCountries?.length
+      ? detectedCountries
+      : countryCode
+      ? [countryCode.toUpperCase()]
+      : null;
 
-  if (targetCountries) {
-    query = query.in('country_code', targetCountries);
-  }
+    if (targetCountries) {
+      query = query.in('country_code', targetCountries);
+    }
 
-  // Search in topic and explanation using OR conditions
-  if (keywords.length > 0) {
-    const searchPattern = keywords.join(' | ');
-    query = query.or(`topic.ilike.%${keywords[0]}%,plain_explanation.ilike.%${keywords[0]}%`);
-  }
+    // Search in topic and explanation using OR conditions
+    if (keywords.length > 0) {
+      query = query.or(`topic.ilike.%${keywords[0]}%,plain_explanation.ilike.%${keywords[0]}%`);
+    }
 
-  const { data, error } = await query;
+    const { data, error } = await query;
 
-  if (error) {
-    console.error('RAG query error:', error);
+    if (error) {
+      console.error('RAG query error:', error);
+      return [];
+    }
+
+    // Transform and score results
+    const results = (data || []).map((entry) => {
+      // Handle countries relation - can be array or single object depending on query
+      const countries = entry.countries as { name: string } | { name: string }[] | null;
+      const countryName = Array.isArray(countries) 
+        ? countries[0]?.name 
+        : countries?.name;
+      
+      return {
+        country_code: entry.country_code,
+        country_name: countryName || entry.country_code,
+        topic: entry.topic,
+        status: entry.status,
+        plain_explanation: entry.plain_explanation,
+        legal_basis: entry.legal_basis,
+        cultural_note: entry.cultural_note,
+      };
+    });
+
+    // Score by keyword matches
+    const scored = results.map((entry) => {
+      let score = 0;
+      const text = `${entry.topic} ${entry.plain_explanation}`.toLowerCase();
+      for (const keyword of keywords) {
+        if (text.includes(keyword)) score++;
+      }
+      return { ...entry, score };
+    });
+
+    // Sort by score and return top results
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map(({ score, ...entry }) => entry);
+  } catch (err) {
+    console.error('RAG query exception:', err);
     return [];
   }
-
-  // Transform and score results
-  const results = (data || []).map((entry) => {
-    // Handle countries relation - can be array or single object depending on query
-    const countries = entry.countries as { name: string } | { name: string }[] | null;
-    const countryName = Array.isArray(countries) 
-      ? countries[0]?.name 
-      : countries?.name;
-    
-    return {
-      country_code: entry.country_code,
-      country_name: countryName || entry.country_code,
-      topic: entry.topic,
-      status: entry.status,
-      plain_explanation: entry.plain_explanation,
-      legal_basis: entry.legal_basis,
-      cultural_note: entry.cultural_note,
-    };
-  });
-
-  // Score by keyword matches
-  const scored = results.map((entry) => {
-    let score = 0;
-    const text = `${entry.topic} ${entry.plain_explanation}`.toLowerCase();
-    for (const keyword of keywords) {
-      if (text.includes(keyword)) score++;
-    }
-    return { ...entry, score };
-  });
-
-  // Sort by score and return top results
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
-    .map(({ score, ...entry }) => entry);
 }
 
 /**
@@ -227,19 +231,34 @@ export async function performRAG(
   message: string,
   context?: { countryCode?: string; countryName?: string }
 ): Promise<{ prompt: string; ragResults: RAGResult }> {
-  const keywords = extractKeywords(message);
-  const detectedCountries = detectCountries(message);
-  
-  const entries = await queryRAG(keywords, context?.countryCode, detectedCountries);
-  
-  const prompt = buildPrompt(message, entries, context);
+  try {
+    const keywords = extractKeywords(message);
+    const detectedCountries = detectCountries(message);
+    
+    const entries = await queryRAG(keywords, context?.countryCode, detectedCountries);
+    
+    const prompt = buildPrompt(message, entries, context);
 
-  return {
-    prompt,
-    ragResults: {
-      entries,
-      keywords,
-      detectedCountries,
-    },
-  };
+    return {
+      prompt,
+      ragResults: {
+        entries,
+        keywords,
+        detectedCountries,
+      },
+    };
+  } catch (err) {
+    console.error('performRAG error:', err);
+    // Return empty results on error
+    const keywords = extractKeywords(message);
+    const detectedCountries = detectCountries(message);
+    return {
+      prompt: buildPrompt(message, [], context),
+      ragResults: {
+        entries: [],
+        keywords,
+        detectedCountries,
+      },
+    };
+  }
 }
