@@ -30,8 +30,14 @@ export default function Home() {
       fetch('/api/countries').then((res) => res.json()),
       fetch('/api/countries/stats').then((res) => res.json()),
     ]).then(([countriesData, statsData]) => {
-      setCountries(countriesData);
-      setStats(statsData);
+      // Handle error responses - ensure we always have arrays/objects
+      setCountries(Array.isArray(countriesData) ? countriesData : []);
+      setStats(statsData && !statsData.error ? statsData : {});
+      setLoading(false);
+    }).catch((err) => {
+      console.error('Failed to load data:', err);
+      setCountries([]);
+      setStats({});
       setLoading(false);
     });
   }, []);

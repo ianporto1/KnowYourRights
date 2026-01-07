@@ -1,21 +1,23 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-let supabaseInstance: SupabaseClient | null = null;
-
-export const supabase = (() => {
-  if (!supabaseInstance && supabaseUrl && supabaseKey) {
-    supabaseInstance = createClient(supabaseUrl, supabaseKey);
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
   }
-  // Return instance or create a placeholder that will fail gracefully at runtime
-  if (!supabaseInstance) {
-    if (typeof window === 'undefined' && !supabaseUrl) {
-      // During build, return a mock that won't be used
-      return createClient('https://placeholder.supabase.co', 'placeholder-key');
+  return createClient(supabaseUrl, supabaseKey);
+}
+
+// Lazy initialization - only create client when actually used
+let _supabase: ReturnType<typeof createClient> | null = null;
+
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_, prop) {
+    if (!_supabase) {
+      _supabase = getSupabaseClient();
     }
-    supabaseInstance = createClient(supabaseUrl, supabaseKey);
-  }
-  return supabaseInstance;
-})();
+    return (_supabase as Record<string, unknown>)[prop as string];
+  },
+});
