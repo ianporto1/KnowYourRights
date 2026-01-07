@@ -133,11 +133,12 @@ export async function queryRAG(
       query = query.in('country_code', targetCountries);
     }
 
-    // Search in topic and explanation using OR conditions
+    // Search in topic and explanation using OR conditions (only if we have keywords)
     if (keywords.length > 0) {
       query = query.or(`topic.ilike.%${keywords[0]}%,plain_explanation.ilike.%${keywords[0]}%`);
     }
-
+    // If we have countries but no keywords, just get some entries from those countries
+    // (the query will return results filtered by country)
     const { data, error } = await query;
 
     if (error) {
@@ -193,35 +194,47 @@ export function buildPrompt(
   ragResults: RAGResult['entries'],
   context?: { countryCode?: string; countryName?: string }
 ): string {
-  const systemPrompt = `Você é um assistente especializado em informações sobre leis e direitos em diferentes países. 
-Responda de forma clara, concisa e educativa. 
-Use os dados fornecidos como base para suas respostas.
-Se não tiver informações suficientes, sugira que o usuário explore o app manualmente.
-Sempre mencione que as informações são educacionais e não constituem aconselhamento jurídico.`;
-
   let contextSection = '';
   
   if (ragResults.length > 0) {
-    contextSection = `\n\nDados relevantes encontrados:\n`;
+    contextSection = 'Dados do app:\n';
     for (const entry of ragResults) {
-      contextSection += `\n---\nPaís: ${entry.country_name} (${entry.country_code})
-Tópico: ${entry.topic}
-Status: ${entry.status === 'green' ? 'Permitido' : entry.status === 'yellow' ? 'Restrições' : 'Proibido'}
-Explicação: ${entry.plain_explanation}
-Base legal: ${entry.legal_basis}`;
-      if (entry.cultural_note) {
-        contextSection += `\nNota cultural: ${entry.cultural_note}`;
-      }
+      contextSection += `- ${entry.topic} (${entry.country_name}): ${entry.status === 'green' ? 'Permitido' : entry.status === 'yellow' ? 'Restrições' : 'Proibido'}. ${entry.plain_explanation}\n`;
     }
-  } else {
-    contextSection = '\n\nNão foram encontrados dados específicos para esta pergunta.';
   }
 
-  if (context?.countryName) {
-    contextSection += `\n\nContexto: O usuário está visualizando informações sobre ${context.countryName}.`;
-  }
+  const countryContext = context?.countryName ? ` O usuário está navegando em ${context.countryName}.` : '';
 
-  return `${systemPrompt}${contextSection}\n\nPergunta do usuário: ${userMessage}`;
+  const systemInstructions = `Você é o assistente do Global Rights Guide, um app que informa sobre leis e direitos em diferentes países.
+
+PERSONALIDADE:
+- Seja simpático, educado e acolhedor
+- Para saudações (oi, olá, tudo bem, etc), responda de forma amigável e pergunte como pode ajudar
+- Use emojis com moderação para ser mais expressivo
+
+SUAS CAPACIDADES:
+- Explicar o que é permitido, restrito ou proibido em cada país
+- Comparar leis entre países diferentes  
+- Esclarecer dúvidas sobre liberdade de expressão, comportamento em público, consumo de substâncias e direitos digitais
+- Usar dados do nosso banco quando disponíveis
+
+REGRAS:
+- Responda SEMPRE em português brasileiro
+- Seja conciso: máximo 2-3 parágrafos
+- Se tiver dados do app, use-os como base
+- Se não souber ou não tiver dados, sugira explorar o app
+- Nunca invente leis ou informações
+
+FORMATO DE STATUS:
+- ✅ Permitido
+- ⚠️ Restrições
+- 🚫 Proibido`;
+
+  return `${systemInstructions}
+
+${contextSection}${countryContext}
+
+Pergunta do usuário: ${userMessage}`;
 }
 
 /**

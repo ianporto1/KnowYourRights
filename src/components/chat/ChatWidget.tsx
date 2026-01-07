@@ -35,14 +35,15 @@ export function ChatWidget({ context }: ChatWidgetProps) {
 
   const suggestions = context?.countryCode
     ? [
-        `O que é permitido em ${context.countryName || context.countryCode}?`,
-        `Quais são as principais restrições em ${context.countryName || context.countryCode}?`,
-        `Compare ${context.countryName || context.countryCode} com outros países`,
+        `Posso beijar em público em ${context.countryName || context.countryCode}?`,
+        `O que é proibido em ${context.countryName || context.countryCode}?`,
+        `Posso criticar o governo em ${context.countryName || context.countryCode}?`,
       ]
     : [
-        'Quais países têm mais liberdade?',
-        'Onde posso beijar em público?',
-        'Compare Brasil e Japão',
+        'Onde posso consumir maconha legalmente?',
+        'Quais países permitem beijo homoafetivo em público?',
+        'Compare liberdade de expressão: Brasil vs Emirados',
+        'O que é proibido no Japão?',
       ];
 
   const sendMessage = async (text: string) => {
@@ -131,10 +132,13 @@ export function ChatWidget({ context }: ChatWidgetProps) {
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
-              <div className="text-center py-8">
-                <span className="text-4xl mb-4 block">🌍</span>
-                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                  Olá! Posso ajudar com informações sobre leis e direitos em diferentes países.
+              <div className="text-center py-6">
+                <span className="text-4xl mb-3 block">🌍</span>
+                <p className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-2">
+                  Olá! Sou o assistente do Global Rights Guide
+                </p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs mb-4">
+                  Posso ajudar com informações sobre leis e direitos em diferentes países. Experimente perguntar:
                 </p>
                 <ChatSuggestions
                   suggestions={suggestions}
@@ -160,6 +164,9 @@ export function ChatWidget({ context }: ChatWidgetProps) {
 
           {/* Input */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center mb-2">
+              ⚠️ Informação educacional, não é aconselhamento jurídico
+            </p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
