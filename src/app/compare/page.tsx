@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -39,6 +39,25 @@ const statusConfig = {
 };
 
 export default function ComparePage() {
+  return (
+    <Suspense fallback={<ComparePageSkeleton />}>
+      <ComparePageContent />
+    </Suspense>
+  );
+}
+
+function ComparePageSkeleton() {
+  return (
+    <main className="min-h-screen p-6 md:p-8 max-w-6xl mx-auto">
+      <div className="text-center py-12">
+        <span className="text-4xl animate-spin inline-block">⏳</span>
+        <p className="mt-4 text-gray-500 dark:text-gray-400">Carregando...</p>
+      </div>
+    </main>
+  );
+}
+
+function ComparePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
