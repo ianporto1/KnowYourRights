@@ -405,33 +405,37 @@ function ComparePageContent() {
             </div>
           </div>
 
-          {/* Country stats bars */}
-          <div className="space-y-3">
+          {/* Country stats bars - Mobile optimized */}
+          <div className="space-y-4">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">Distribuição por país</h3>
             {statistics.countryStats.map(({ country, stats, travelAdvisory }) => (
-              <div key={country?.code} className="flex items-center gap-3">
-                <span className="text-xl w-8">{country?.flag}</span>
-                <span className="text-sm font-medium w-24 truncate">{country?.name}</span>
-                <TravelAdvisoryBadge level={travelAdvisory} size="sm" />
-                <div className="flex-1 flex h-6 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <div key={country?.code} className="space-y-2">
+                {/* Country header row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xl">{country?.flag}</span>
+                  <span className="text-sm font-medium">{country?.name}</span>
+                  <TravelAdvisoryBadge level={travelAdvisory} size="sm" />
+                </div>
+                {/* Stats bar */}
+                <div className="flex h-6 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {stats.total > 0 && (
                     <>
                       <div 
-                        className="bg-green-500 flex items-center justify-center text-white text-xs font-medium"
+                        className="bg-green-500 flex items-center justify-center text-white text-xs font-medium min-w-[24px]"
                         style={{ width: `${(stats.green / stats.total) * 100}%` }}
                         title={`${stats.green} permitidos`}
                       >
                         {stats.green > 0 && stats.green}
                       </div>
                       <div 
-                        className="bg-yellow-500 flex items-center justify-center text-white text-xs font-medium"
+                        className="bg-yellow-500 flex items-center justify-center text-white text-xs font-medium min-w-[24px]"
                         style={{ width: `${(stats.yellow / stats.total) * 100}%` }}
                         title={`${stats.yellow} com restrições`}
                       >
                         {stats.yellow > 0 && stats.yellow}
                       </div>
                       <div 
-                        className="bg-red-500 flex items-center justify-center text-white text-xs font-medium"
+                        className="bg-red-500 flex items-center justify-center text-white text-xs font-medium min-w-[24px]"
                         style={{ width: `${(stats.red / stats.total) * 100}%` }}
                         title={`${stats.red} proibidos`}
                       >

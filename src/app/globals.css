@@ -1561,3 +1561,192 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ==================== */
+/* SCROLLBAR STYLES */
+/* ==================== */
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--card-border) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-muted);
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==================== */
+/* UTILITY CLASSES */
+/* ==================== */
+
+/* Text utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Truncate with ellipsis */
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Aspect ratios */
+.aspect-card {
+  aspect-ratio: 3/4;
+}
+
+.aspect-flag {
+  aspect-ratio: 3/2;
+}
+
+/* Backdrop blur */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ==================== */
+/* INTERACTIVE STATES */
+/* ==================== */
+
+/* Focus ring */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+}
+
+/* Active state */
+.active-scale:active {
+  transform: scale(0.98);
+}
+
+/* Disabled state */
+.disabled-state {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* ==================== */
+/* LAYOUT HELPERS */
+/* ==================== */
+
+/* Sticky header */
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--background);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Full bleed */
+.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
+
+/* Center content */
+.center-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Stack layout */
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.stack-sm > * + * {
+  margin-top: 8px;
+}
+
+.stack-md > * + * {
+  margin-top: 16px;
+}
+
+.stack-lg > * + * {
+  margin-top: 24px;
+}
+
+/* Cluster layout */
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ==================== */
+/* PRINT STYLES */
+/* ==================== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .card {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+    break-inside: avoid;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}
