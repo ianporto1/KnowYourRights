@@ -146,15 +146,23 @@ export async function queryRAG(
   }
 
   // Transform and score results
-  const results = (data || []).map((entry) => ({
-    country_code: entry.country_code,
-    country_name: (entry.countries as { name: string })?.name || entry.country_code,
-    topic: entry.topic,
-    status: entry.status,
-    plain_explanation: entry.plain_explanation,
-    legal_basis: entry.legal_basis,
-    cultural_note: entry.cultural_note,
-  }));
+  const results = (data || []).map((entry) => {
+    // Handle countries relation - can be array or single object depending on query
+    const countries = entry.countries as { name: string } | { name: string }[] | null;
+    const countryName = Array.isArray(countries) 
+      ? countries[0]?.name 
+      : countries?.name;
+    
+    return {
+      country_code: entry.country_code,
+      country_name: countryName || entry.country_code,
+      topic: entry.topic,
+      status: entry.status,
+      plain_explanation: entry.plain_explanation,
+      legal_basis: entry.legal_basis,
+      cultural_note: entry.cultural_note,
+    };
+  });
 
   // Score by keyword matches
   const scored = results.map((entry) => {
