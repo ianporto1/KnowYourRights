@@ -13,10 +13,14 @@ interface Country {
 export default function AdminCountriesPage() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingCountry, setEditingCountry] = useState<Country | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({ code: '', name: '', flag: '', freedom_index: 5 });
+  const [editing, setEditing] = useState<Country | null>(null);
+  const [form, setForm] = useState({ name: '', flag: '', freedom_index: 5 });
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    loadCountries();
+  }, []);
 
   const loadCountries = async () => {
     const { data } = await supabase.from('countries').select('*').order('name');
@@ -24,197 +28,114 @@ export default function AdminCountriesPage() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadCountries();
-  }, []);
-
-  const handleCreate = async () => {
-    setSaving(true);
-    const { error } = await supabase.from('countries').insert([{
-      code: formData.code.toUpperCase(),
-      name: formData.name,
-      flag: formData.flag,
-      freedom_index: formData.freedom_index,
-    }]);
-    
-    if (!error) {
-      setIsCreating(false);
-      setFormData({ code: '', name: '', flag: '', freedom_index: 5 });
-      loadCountries();
-    }
-    setSaving(false);
-  };
-
-  const handleUpdate = async () => {
-    if (!editingCountry) return;
-    setSaving(true);
-    
-    const { error } = await supabase
-      .from('countries')
-      .update({
-        name: formData.name,
-        flag: formData.flag,
-        freedom_index: formData.freedom_index,
-      })
-      .eq('code', editingCountry.code);
-    
-    if (!error) {
-      setEditingCountry(null);
-      loadCountries();
-    }
-    setSaving(false);
-  };
-
-  const handleDelete = async (code: string) => {
-    if (!confirm('Tem certeza? Isso também excluirá todas as entradas deste país.')) return;
-    
-    // Delete entries first
-    await supabase.from('cartilha_entries').delete().eq('country_code', code);
-    // Then delete country
-    await supabase.from('countries').delete().eq('code', code);
-    loadCountries();
-  };
-
   const startEdit = (country: Country) => {
-    setEditingCountry(country);
-    setFormData({
-      code: country.code,
-      name: country.name,
-      flag: country.flag,
-      freedom_index: country.freedom_index,
-    });
+    setEditing(country);
+    setForm({ name: country.name, flag: country.flag, freedom_index: country.freedom_index });
   };
 
-  if (loading) {
-    return <div className="animate-pulse">Carregando...</div>;
-  }
+  const handleSave = async () => {
+    if (!editing) return;
+    setSaving(true);
+    
+    await supabase
+      .from('countries')
+      .update({ name: form.name, flag: form.flag, freedom_index: form.freedom_index })
+      .eq('code', editing.code);
+    
+    setEditing(null);
+    loadCountries();
+    setSaving(false);
+  };
+
+  const filtered = countries.filter(c => 
+    c.name.toLowerCase().includes(search.toLowerCase()) || 
+    c.code.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) return <div className="animate-pulse">Carregando...</div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Países ({countries.length})</h2>
-        <button
-          onClick={() => {
-            setIsCreating(true);
-            setFormData({ code: '', name: '', flag: '', freedom_index: 5 });
-          }}
-          className="btn btn-primary"
-        >
-          ➕ Novo País
-        </button>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-xl font-bold">Países ({countries.length})</h2>
+        <input
+          type="text"
+          placeholder="Buscar..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="search-input max-w-xs"
+        />
       </div>
 
-      {/* Create/Edit Form */}
-      {(isCreating || editingCountry) && (
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {isCreating ? 'Novo País' : `Editando: ${editingCountry?.name}`}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {isCreating && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Código (ex: BR)</label>
-                <input
-                  type="text"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  className="search-input"
-                  maxLength={2}
-                />
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium mb-1">Nome</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="search-input"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Bandeira (emoji)</label>
-              <input
-                type="text"
-                value={formData.flag}
-                onChange={(e) => setFormData({ ...formData, flag: e.target.value })}
-                className="search-input"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Índice de Liberdade: {formData.freedom_index}
-              </label>
+      {editing && (
+        <div className="card p-4">
+          <h3 className="font-semibold mb-3">Editando: {editing.code}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="search-input"
+              placeholder="Nome"
+            />
+            <input
+              type="text"
+              value={form.flag}
+              onChange={(e) => setForm({ ...form, flag: e.target.value })}
+              className="search-input"
+              placeholder="Bandeira"
+            />
+            <div className="flex items-center gap-2">
               <input
                 type="range"
                 min="0"
                 max="10"
                 step="0.1"
-                value={formData.freedom_index}
-                onChange={(e) => setFormData({ ...formData, freedom_index: parseFloat(e.target.value) })}
-                className="w-full"
+                value={form.freedom_index}
+                onChange={(e) => setForm({ ...form, freedom_index: parseFloat(e.target.value) })}
+                className="flex-1"
               />
+              <span className="text-sm w-8">{form.freedom_index}</span>
             </div>
           </div>
-          <div className="flex gap-2 mt-4">
-            <button
-              onClick={isCreating ? handleCreate : handleUpdate}
-              disabled={saving}
-              className="btn btn-primary"
-            >
+          <div className="flex gap-2 mt-3">
+            <button onClick={handleSave} disabled={saving} className="btn btn-primary text-sm">
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
-            <button
-              onClick={() => {
-                setIsCreating(false);
-                setEditingCountry(null);
-              }}
-              className="btn bg-gray-200 dark:bg-gray-700"
-            >
+            <button onClick={() => setEditing(null)} className="btn bg-gray-200 dark:bg-gray-700 text-sm">
               Cancelar
             </button>
           </div>
         </div>
       )}
 
-      {/* Table */}
       <div className="card overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-800">
-            <tr>
-              <th className="px-4 py-3 text-left">Bandeira</th>
-              <th className="px-4 py-3 text-left">Código</th>
-              <th className="px-4 py-3 text-left">Nome</th>
-              <th className="px-4 py-3 text-left">Índice</th>
-              <th className="px-4 py-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {countries.map((country) => (
-              <tr key={country.code} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                <td className="px-4 py-3 text-2xl">{country.flag}</td>
-                <td className="px-4 py-3 font-mono">{country.code}</td>
-                <td className="px-4 py-3">{country.name}</td>
-                <td className="px-4 py-3">{country.freedom_index}/10</td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => startEdit(country)}
-                    className="text-indigo-600 hover:text-indigo-800 mr-3"
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(country.code)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    🗑️ Excluir
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th className="px-3 py-2 text-left">País</th>
+                <th className="px-3 py-2 text-left">Código</th>
+                <th className="px-3 py-2 text-left">Índice</th>
+                <th className="px-3 py-2 text-right">Ação</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {filtered.map((country) => (
+                <tr key={country.code} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <td className="px-3 py-2">{country.flag} {country.name}</td>
+                  <td className="px-3 py-2 font-mono text-xs">{country.code}</td>
+                  <td className="px-3 py-2">{country.freedom_index}/10</td>
+                  <td className="px-3 py-2 text-right">
+                    <button onClick={() => startEdit(country)} className="text-indigo-600 hover:underline">
+                      Editar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

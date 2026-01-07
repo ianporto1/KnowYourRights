@@ -9,6 +9,7 @@ import { CountryNavigation } from '@/components/CountryNavigation';
 import { SkeletonGrid } from '@/components/SkeletonCard';
 import { TravelAdvisoryBanner } from '@/components/TravelAdvisoryBadge';
 import { calculateTravelAdvisory, TravelAdvisoryLevel } from '@/lib/travel-advisory';
+import { NewsSection } from '@/components/NewsSection';
 
 interface Country {
   code: string;
@@ -82,6 +83,52 @@ const countryMeta: Record<string, { region: string; language: string; currency: 
 
 const defaultMeta = { region: 'Internacional', language: '-', currency: '-', timezone: '-', capital: '-' };
 
+// Official government/law links per country
+const officialLawLinks: Record<string, { url: string; label: string }> = {
+  BR: { url: 'https://www.planalto.gov.br/ccivil_03/leis/', label: 'Planalto - Legislação' },
+  US: { url: 'https://www.usa.gov/laws-and-regulations', label: 'USA.gov - Laws' },
+  DE: { url: 'https://www.gesetze-im-internet.de/', label: 'Gesetze im Internet' },
+  JP: { url: 'https://elaws.e-gov.go.jp/', label: 'e-Gov Law Search' },
+  AE: { url: 'https://uaelegislation.gov.ae/', label: 'UAE Legislation' },
+  FR: { url: 'https://www.legifrance.gouv.fr/', label: 'Légifrance' },
+  GB: { url: 'https://www.legislation.gov.uk/', label: 'UK Legislation' },
+  IT: { url: 'https://www.normattiva.it/', label: 'Normattiva' },
+  ES: { url: 'https://www.boe.es/', label: 'BOE - Legislación' },
+  PT: { url: 'https://dre.pt/', label: 'Diário da República' },
+  CN: { url: 'https://flk.npc.gov.cn/', label: 'NPC Law Database' },
+  IN: { url: 'https://legislative.gov.in/', label: 'India Code' },
+  AU: { url: 'https://www.legislation.gov.au/', label: 'Federal Register' },
+  CA: { url: 'https://laws-lois.justice.gc.ca/', label: 'Justice Laws' },
+  MX: { url: 'https://www.diputados.gob.mx/LeyesBiblio/', label: 'Leyes Federales' },
+  AR: { url: 'https://www.argentina.gob.ar/normativa', label: 'InfoLEG' },
+  CL: { url: 'https://www.bcn.cl/leychile/', label: 'Ley Chile' },
+  CO: { url: 'https://www.suin-juriscol.gov.co/', label: 'SUIN-Juriscol' },
+  NL: { url: 'https://wetten.overheid.nl/', label: 'Overheid.nl' },
+  BE: { url: 'https://www.ejustice.just.fgov.be/', label: 'Belgisch Staatsblad' },
+  CH: { url: 'https://www.fedlex.admin.ch/', label: 'Fedlex' },
+  AT: { url: 'https://www.ris.bka.gv.at/', label: 'RIS' },
+  SE: { url: 'https://www.riksdagen.se/sv/dokument-och-lagar/', label: 'Riksdagen' },
+  NO: { url: 'https://lovdata.no/', label: 'Lovdata' },
+  DK: { url: 'https://www.retsinformation.dk/', label: 'Retsinformation' },
+  FI: { url: 'https://www.finlex.fi/', label: 'Finlex' },
+  PL: { url: 'https://isap.sejm.gov.pl/', label: 'ISAP' },
+  RU: { url: 'http://pravo.gov.ru/', label: 'Pravo.gov.ru' },
+  KR: { url: 'https://www.law.go.kr/', label: 'Korea Law' },
+  SG: { url: 'https://sso.agc.gov.sg/', label: 'Singapore Statutes' },
+  NZ: { url: 'https://www.legislation.govt.nz/', label: 'NZ Legislation' },
+  ZA: { url: 'https://www.gov.za/documents/acts', label: 'SA Government' },
+  IE: { url: 'https://www.irishstatutebook.ie/', label: 'Irish Statute Book' },
+  IL: { url: 'https://www.nevo.co.il/', label: 'Nevo Legal Database' },
+  TR: { url: 'https://www.mevzuat.gov.tr/', label: 'Mevzuat' },
+  SA: { url: 'https://laws.boe.gov.sa/', label: 'Saudi Laws' },
+  EG: { url: 'https://manshurat.org/', label: 'Manshurat' },
+  TH: { url: 'https://www.krisdika.go.th/', label: 'Krisdika' },
+  MY: { url: 'https://www.agc.gov.my/', label: 'AGC Malaysia' },
+  ID: { url: 'https://peraturan.bpk.go.id/', label: 'JDIH BPK' },
+  PH: { url: 'https://www.officialgazette.gov.ph/', label: 'Official Gazette' },
+  VN: { url: 'https://vbpl.vn/', label: 'VBPL' },
+};
+
 export default function CountryPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
   const [data, setData] = useState<{ country: Country; categories: Category[]; entries: Entry[] } | null>(null);
@@ -92,7 +139,7 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [readTopics, setReadTopics] = useState<Set<string>>(new Set());
+
   const [showAlerts, setShowAlerts] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -101,9 +148,7 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
   // Load favorites and read topics from localStorage
   useEffect(() => {
     const savedFavorites = localStorage.getItem(`favorites-${code}`);
-    const savedRead = localStorage.getItem(`read-${code}`);
     if (savedFavorites) setFavorites(new Set(JSON.parse(savedFavorites)));
-    if (savedRead) setReadTopics(new Set(JSON.parse(savedRead)));
   }, [code]);
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
@@ -114,15 +159,6 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
       else newFavs.add(id);
       localStorage.setItem(`favorites-${code}`, JSON.stringify([...newFavs]));
       return newFavs;
-    });
-  };
-
-  const markAsRead = (id: string) => {
-    setReadTopics(prev => {
-      const newRead = new Set(prev);
-      newRead.add(id);
-      localStorage.setItem(`read-${code}`, JSON.stringify([...newRead]));
-      return newRead;
     });
   };
 
@@ -223,8 +259,6 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
     { label: 'Proibido', value: statusCounts.red, color: statusConfig.red.color },
   ];
   const getFreedomColor = (index: number) => index >= 7 ? '#22c55e' : index >= 5 ? '#f59e0b' : '#ef4444';
-  const readProgress = Math.round((readTopics.size / entries.length) * 100);
-
   // Calculate travel advisory
   const travelAdvisory: TravelAdvisoryLevel = calculateTravelAdvisory(
     country.freedom_index,
@@ -267,6 +301,20 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
               <span>🗣️ {meta.language}</span>
               <span className="separator hidden sm:inline">•</span>
               <span>💰 {meta.currency}</span>
+              {officialLawLinks[code.toUpperCase()] && (
+                <>
+                  <span className="separator hidden sm:inline">•</span>
+                  <a 
+                    href={officialLawLinks[code.toUpperCase()].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-500 hover:text-indigo-600 hover:underline flex items-center gap-1"
+                  >
+                    📜 {officialLawLinks[code.toUpperCase()].label}
+                    <span className="text-[10px]">↗</span>
+                  </a>
+                </>
+              )}
             </div>
             
             {/* Freedom index */}
@@ -289,22 +337,6 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
             </div>
           </div>
           
-          {/* Donut chart */}
-          <div className="donut-container flex flex-col items-center gap-2 mt-2 md:mt-0">
-            <DonutChart data={chartData} size={80} />
-            <span className="text-xs text-gray-500">{entries.length} leis</span>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="progress-section mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
-            <span className="text-gray-500">Progresso de leitura</span>
-            <span className="font-medium">{readProgress}%</span>
-          </div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${readProgress}%` }} />
-          </div>
         </div>
       </div>
 
@@ -397,17 +429,13 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
             const config = statusConfig[entry.status];
             const isExpanded = expandedCard === entry.id;
             const isFavorite = favorites.has(entry.id);
-            const isRead = readTopics.has(entry.id);
             
             return (
               <div
                 key={entry.id}
-                className={`card topic-card-mobile ${config.cardClass} p-3 sm:p-4 cursor-pointer transition-all animate-fade-in ${isExpanded ? 'ring-2 ring-indigo-500' : ''} ${isRead ? 'opacity-75' : ''} ${viewMode === 'list' ? 'w-full hover:transform-none hover:rotate-0' : ''}`}
+                className={`card topic-card-mobile ${config.cardClass} p-3 sm:p-4 cursor-pointer transition-all animate-fade-in ${isExpanded ? 'ring-2 ring-indigo-500' : ''} ${viewMode === 'list' ? 'w-full hover:transform-none hover:rotate-0' : ''}`}
                 style={{ animationDelay: `${i * 0.05}s` }}
-                onClick={() => {
-                  setExpandedCard(isExpanded ? null : entry.id);
-                  markAsRead(entry.id);
-                }}
+                onClick={() => setExpandedCard(isExpanded ? null : entry.id)}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <h3 className="font-semibold text-gray-900 dark:text-white flex-1 text-sm sm:text-base leading-tight">
@@ -457,6 +485,14 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
           })}
         </div>
       )}
+
+      {/* News Section */}
+      <div className="mt-8">
+        <NewsSection 
+          countryCodes={[code.toUpperCase()]} 
+          countryNames={{ [code.toUpperCase()]: country.name }}
+        />
+      </div>
 
       {/* Country Navigation */}
       <CountryNavigation

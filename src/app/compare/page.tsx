@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { TravelAdvisoryBadge } from '@/components/TravelAdvisoryBadge';
 import { TravelAdvisoryLevel, getTravelAdvisoryConfig } from '@/lib/travel-advisory';
+import { NewsSection } from '@/components/NewsSection';
 
 interface Country {
   code: string;
@@ -139,6 +140,8 @@ function ComparePageContent() {
   const [sortBy, setSortBy] = useState<SortOption>('category');
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<'grouped' | 'table'>('grouped');
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const INITIAL_CATEGORIES_TO_SHOW = 3;
 
   // Load countries
   useEffect(() => {
@@ -522,7 +525,7 @@ function ComparePageContent() {
       {/* Grouped View - Mobile optimized */}
       {!loading && viewMode === 'grouped' && filteredGrouped.length > 0 && (
         <div className="space-y-4 animate-fade-in">
-          {filteredGrouped.map((group, groupIndex) => (
+          {(showAllCategories ? filteredGrouped : filteredGrouped.slice(0, INITIAL_CATEGORIES_TO_SHOW)).map((group, groupIndex) => (
             <div key={group.category.id} className="card overflow-hidden" style={{ animationDelay: `${groupIndex * 0.1}s` }}>
               {/* Category Header */}
               <button
@@ -592,80 +595,122 @@ function ComparePageContent() {
               )}
             </div>
           ))}
+          
+          {/* Show more/less button */}
+          {filteredGrouped.length > INITIAL_CATEGORIES_TO_SHOW && (
+            <button
+              onClick={() => setShowAllCategories(!showAllCategories)}
+              className="w-full py-4 text-center text-indigo-600 dark:text-indigo-400 font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {showAllCategories ? (
+                <>
+                  <span>Ver menos</span>
+                  <span className="text-lg">↑</span>
+                </>
+              ) : (
+                <>
+                  <span>Ver mais {filteredGrouped.length - INITIAL_CATEGORIES_TO_SHOW} categorias</span>
+                  <span className="text-lg">↓</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 
       {/* Table View - Mobile optimized with horizontal scroll */}
       {!loading && viewMode === 'table' && filteredGrouped.length > 0 && (
-        <div className="card overflow-hidden animate-fade-in">
-          <div className="overflow-x-auto">
-            <div style={{ minWidth: `${180 + selectedCountries.length * 120}px` }}>
-              {/* Header with country flags */}
-              <div 
-                className="grid border-b bg-gray-50 dark:bg-gray-800/50 sticky top-0 z-10" 
-                style={{ gridTemplateColumns: `140px repeat(${selectedCountries.length}, minmax(100px, 1fr))` }}
-              >
-                <div className="p-3 font-bold border-r border-gray-200 dark:border-gray-700 text-sm">Tema</div>
-                {selectedCountries.map(c => (
-                  <div key={c.code} className="p-2 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0">
-                    <span className="text-xl block">{c.flag}</span>
-                    <span className="font-medium text-xs truncate block">{c.name}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Grouped rows */}
-              {filteredGrouped.map((group) => (
-                <div key={group.category.id}>
-                  {/* Category header row */}
-                  <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
-                    <span className="text-base sm:text-lg mr-2">{group.category.icon}</span>
-                    <span className="font-semibold text-sm">{group.category.name_key}</span>
-                    <span className="ml-2 text-xs text-gray-500">({group.comparisons.length})</span>
-                  </div>
-                  
-                  {/* Topic rows */}
-                  {group.comparisons.map((comp) => (
-                    <div 
-                      key={comp.topic} 
-                      className="grid border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition"
-                      style={{ gridTemplateColumns: `140px repeat(${selectedCountries.length}, minmax(100px, 1fr))` }}
-                    >
-                      <div className="p-2 sm:p-3 font-medium text-xs sm:text-sm border-r border-gray-200 dark:border-gray-700 flex items-center">
-                        <span className="line-clamp-2">{comp.topic}</span>
-                        {comp.hasDifferences && (
-                          <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" title="Diferente"></span>
-                        )}
-                      </div>
-                      {comp.entries.map(({ country, entry }) => {
-                        const config = entry ? statusConfig[entry.status] : null;
-                        return (
-                          <div 
-                            key={country?.code} 
-                            className={`p-2 border-r border-gray-200 dark:border-gray-700 last:border-r-0 ${config?.bg || ''}`}
-                          >
-                            {entry ? (
-                              <div className="flex flex-col items-center text-center">
-                                <div 
-                                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
-                                  style={{ background: config?.color }}
-                                >
-                                  {config?.icon}
-                                </div>
-                                <span className="font-medium text-[10px] sm:text-xs">{config?.label}</span>
-                              </div>
-                            ) : (
-                              <div className="text-center text-gray-400">—</div>
-                            )}
-                          </div>
-                        );
-                      })}
+        <div className="space-y-4 animate-fade-in">
+          <div className="card overflow-hidden">
+            <div className="overflow-x-auto">
+              <div style={{ minWidth: `${180 + selectedCountries.length * 120}px` }}>
+                {/* Header with country flags */}
+                <div 
+                  className="grid border-b bg-gray-50 dark:bg-gray-800/50 sticky top-0 z-10" 
+                  style={{ gridTemplateColumns: `140px repeat(${selectedCountries.length}, minmax(100px, 1fr))` }}
+                >
+                  <div className="p-3 font-bold border-r border-gray-200 dark:border-gray-700 text-sm">Tema</div>
+                  {selectedCountries.map(c => (
+                    <div key={c.code} className="p-2 text-center border-r border-gray-200 dark:border-gray-700 last:border-r-0">
+                      <span className="text-xl block">{c.flag}</span>
+                      <span className="font-medium text-xs truncate block">{c.name}</span>
                     </div>
                   ))}
                 </div>
-              ))}
+
+                {/* Grouped rows */}
+                {(showAllCategories ? filteredGrouped : filteredGrouped.slice(0, INITIAL_CATEGORIES_TO_SHOW)).map((group) => (
+                  <div key={group.category.id}>
+                    {/* Category header row */}
+                    <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
+                      <span className="text-base sm:text-lg mr-2">{group.category.icon}</span>
+                      <span className="font-semibold text-sm">{group.category.name_key}</span>
+                      <span className="ml-2 text-xs text-gray-500">({group.comparisons.length})</span>
+                    </div>
+                    
+                    {/* Topic rows */}
+                    {group.comparisons.map((comp) => (
+                      <div 
+                        key={comp.topic} 
+                        className="grid border-b border-gray-200 dark:border-gray-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition"
+                        style={{ gridTemplateColumns: `140px repeat(${selectedCountries.length}, minmax(100px, 1fr))` }}
+                      >
+                        <div className="p-2 sm:p-3 font-medium text-xs sm:text-sm border-r border-gray-200 dark:border-gray-700 flex items-center">
+                          <span className="line-clamp-2">{comp.topic}</span>
+                          {comp.hasDifferences && (
+                            <span className="ml-1 w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" title="Diferente"></span>
+                          )}
+                        </div>
+                        {comp.entries.map(({ country, entry }) => {
+                          const config = entry ? statusConfig[entry.status] : null;
+                          return (
+                            <div 
+                              key={country?.code} 
+                              className={`p-2 border-r border-gray-200 dark:border-gray-700 last:border-r-0 ${config?.bg || ''}`}
+                            >
+                              {entry ? (
+                                <div className="flex flex-col items-center text-center">
+                                  <div 
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold mb-1"
+                                    style={{ background: config?.color }}
+                                  >
+                                    {config?.icon}
+                                  </div>
+                                  <span className="font-medium text-[10px] sm:text-xs">{config?.label}</span>
+                                </div>
+                              ) : (
+                                <div className="text-center text-gray-400">—</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          
+          {/* Show more/less button for table view */}
+          {filteredGrouped.length > INITIAL_CATEGORIES_TO_SHOW && (
+            <button
+              onClick={() => setShowAllCategories(!showAllCategories)}
+              className="w-full py-4 text-center text-indigo-600 dark:text-indigo-400 font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {showAllCategories ? (
+                <>
+                  <span>Ver menos</span>
+                  <span className="text-lg">↑</span>
+                </>
+              ) : (
+                <>
+                  <span>Ver mais {filteredGrouped.length - INITIAL_CATEGORIES_TO_SHOW} categorias</span>
+                  <span className="text-lg">↓</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
 
@@ -700,6 +745,16 @@ function ComparePageContent() {
               <span className="text-sm">{config.label}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* News Section */}
+      {selected.length >= 2 && !loading && (
+        <div className="mt-8">
+          <NewsSection 
+            countryCodes={selected} 
+            countryNames={Object.fromEntries(selectedCountries.map(c => [c.code, c.name]))}
+          />
         </div>
       )}
     </main>

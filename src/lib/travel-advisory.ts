@@ -96,27 +96,35 @@ export function calculateTravelAdvisory(
   }
   
   // Scoring system (0-100, higher = safer)
+  // Adjusted to be less restrictive - most countries should be safe/caution
   let score = 0;
   
-  // Freedom index contributes 40 points (0-10 scaled to 0-40)
-  score += freedomIndex * 4;
+  // Base score starts at 50 (neutral)
+  score = 50;
   
-  // Green percentage contributes 30 points
-  score += greenPercentage * 30;
+  // Freedom index contributes up to 30 points (0-10 scaled to 0-30)
+  score += freedomIndex * 3;
   
-  // Red percentage subtracts up to 30 points
-  score -= redPercentage * 30;
+  // Green percentage adds up to 15 points
+  score += greenPercentage * 15;
   
-  // Critical red topics subtract 5 points each (max 35)
-  score -= Math.min(criticalRedCount * 5, 35);
+  // Red percentage subtracts up to 15 points (less punitive)
+  score -= redPercentage * 15;
+  
+  // Critical red topics subtract 3 points each (max 15, less punitive)
+  score -= Math.min(criticalRedCount * 3, 15);
   
   // Normalize to 0-100
   score = Math.max(0, Math.min(100, score));
   
-  // Determine level based on score
-  if (score >= 70) return 'safe';
-  if (score >= 50) return 'caution';
-  if (score >= 30) return 'avoid';
+  // Adjusted thresholds - more lenient
+  // safe: score >= 55 (was 70)
+  // caution: score >= 40 (was 50)
+  // avoid: score >= 25 (was 30)
+  // do_not_travel: score < 25
+  if (score >= 55) return 'safe';
+  if (score >= 40) return 'caution';
+  if (score >= 25) return 'avoid';
   return 'do_not_travel';
 }
 

@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError('Credenciais inválidas');
       setLoading(false);
       return;
     }
@@ -34,19 +34,19 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-md">
-        <div className="card p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">🔐 Admin</h1>
-            <p className="text-gray-500 dark:text-gray-400">
+    <main className="min-h-screen flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900">
+      <div className="w-full max-w-sm">
+        <div className="card p-6">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold">🔐 Admin</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
               Global Rights Guide
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+              <div className="p-2 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm text-center">
                 {error}
               </div>
             )}
@@ -58,8 +58,8 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="search-input"
-                placeholder="admin@example.com"
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -70,8 +70,8 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="search-input"
-                placeholder="••••••••"
                 required
+                autoComplete="current-password"
               />
             </div>
 

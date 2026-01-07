@@ -12,53 +12,115 @@ interface NewsArticle {
 }
 
 // Country name mapping for search queries
-const countrySearchTerms: Record<string, string> = {
-  BR: 'Brazil',
-  US: 'United States',
-  DE: 'Germany',
-  FR: 'France',
-  GB: 'United Kingdom',
-  JP: 'Japan',
-  CN: 'China',
-  IN: 'India',
-  IT: 'Italy',
-  ES: 'Spain',
-  CA: 'Canada',
-  AU: 'Australia',
-  MX: 'Mexico',
-  KR: 'South Korea',
-  RU: 'Russia',
-  SA: 'Saudi Arabia',
-  AE: 'UAE Emirates',
-  IL: 'Israel',
-  TR: 'Turkey',
-  EG: 'Egypt',
-  ZA: 'South Africa',
-  AR: 'Argentina',
-  CL: 'Chile',
-  CO: 'Colombia',
-  PE: 'Peru',
-  TH: 'Thailand',
-  VN: 'Vietnam',
-  ID: 'Indonesia',
-  MY: 'Malaysia',
-  SG: 'Singapore',
-  PH: 'Philippines',
-  NL: 'Netherlands',
-  BE: 'Belgium',
-  PT: 'Portugal',
-  PL: 'Poland',
-  SE: 'Sweden',
-  NO: 'Norway',
-  DK: 'Denmark',
-  FI: 'Finland',
-  AT: 'Austria',
-  CH: 'Switzerland',
-  GR: 'Greece',
-  CZ: 'Czech Republic',
-  IE: 'Ireland',
-  NZ: 'New Zealand',
+const countrySearchTerms: Record<string, { en: string; pt: string }> = {
+  BR: { en: 'Brazil', pt: 'Brasil' },
+  US: { en: 'United States', pt: 'Estados Unidos' },
+  DE: { en: 'Germany', pt: 'Alemanha' },
+  FR: { en: 'France', pt: 'França' },
+  GB: { en: 'United Kingdom', pt: 'Reino Unido' },
+  JP: { en: 'Japan', pt: 'Japão' },
+  CN: { en: 'China', pt: 'China' },
+  IN: { en: 'India', pt: 'Índia' },
+  IT: { en: 'Italy', pt: 'Itália' },
+  ES: { en: 'Spain', pt: 'Espanha' },
+  CA: { en: 'Canada', pt: 'Canadá' },
+  AU: { en: 'Australia', pt: 'Austrália' },
+  MX: { en: 'Mexico', pt: 'México' },
+  KR: { en: 'South Korea', pt: 'Coreia do Sul' },
+  RU: { en: 'Russia', pt: 'Rússia' },
+  SA: { en: 'Saudi Arabia', pt: 'Arábia Saudita' },
+  AE: { en: 'UAE', pt: 'Emirados Árabes' },
+  IL: { en: 'Israel', pt: 'Israel' },
+  TR: { en: 'Turkey', pt: 'Turquia' },
+  EG: { en: 'Egypt', pt: 'Egito' },
+  ZA: { en: 'South Africa', pt: 'África do Sul' },
+  AR: { en: 'Argentina', pt: 'Argentina' },
+  CL: { en: 'Chile', pt: 'Chile' },
+  CO: { en: 'Colombia', pt: 'Colômbia' },
+  PE: { en: 'Peru', pt: 'Peru' },
+  TH: { en: 'Thailand', pt: 'Tailândia' },
+  VN: { en: 'Vietnam', pt: 'Vietnã' },
+  ID: { en: 'Indonesia', pt: 'Indonésia' },
+  MY: { en: 'Malaysia', pt: 'Malásia' },
+  SG: { en: 'Singapore', pt: 'Singapura' },
+  PH: { en: 'Philippines', pt: 'Filipinas' },
+  NL: { en: 'Netherlands', pt: 'Holanda' },
+  BE: { en: 'Belgium', pt: 'Bélgica' },
+  PT: { en: 'Portugal', pt: 'Portugal' },
+  PL: { en: 'Poland', pt: 'Polônia' },
+  SE: { en: 'Sweden', pt: 'Suécia' },
+  NO: { en: 'Norway', pt: 'Noruega' },
+  DK: { en: 'Denmark', pt: 'Dinamarca' },
+  FI: { en: 'Finland', pt: 'Finlândia' },
+  AT: { en: 'Austria', pt: 'Áustria' },
+  CH: { en: 'Switzerland', pt: 'Suíça' },
+  GR: { en: 'Greece', pt: 'Grécia' },
+  CZ: { en: 'Czech Republic', pt: 'República Tcheca' },
+  IE: { en: 'Ireland', pt: 'Irlanda' },
+  NZ: { en: 'New Zealand', pt: 'Nova Zelândia' },
+  UA: { en: 'Ukraine', pt: 'Ucrânia' },
+  IR: { en: 'Iran', pt: 'Irã' },
+  IQ: { en: 'Iraq', pt: 'Iraque' },
+  AF: { en: 'Afghanistan', pt: 'Afeganistão' },
+  PK: { en: 'Pakistan', pt: 'Paquistão' },
+  NG: { en: 'Nigeria', pt: 'Nigéria' },
+  KE: { en: 'Kenya', pt: 'Quênia' },
 };
+
+// Parse RSS XML to extract articles
+function parseRSS(xml: string): NewsArticle[] {
+  const articles: NewsArticle[] = [];
+  
+  // Simple regex-based XML parsing for RSS items
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  const titleRegex = /<title><!\[CDATA\[(.*?)\]\]>|<title>(.*?)<\/title>/;
+  const linkRegex = /<link>(.*?)<\/link>/;
+  const pubDateRegex = /<pubDate>(.*?)<\/pubDate>/;
+  const sourceRegex = /<source[^>]*>(.*?)<\/source>/;
+  const descRegex = /<description><!\[CDATA\[(.*?)\]\]>|<description>(.*?)<\/description>/;
+  
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
+    const item = match[1];
+    
+    const titleMatch = titleRegex.exec(item);
+    const linkMatch = linkRegex.exec(item);
+    const pubDateMatch = pubDateRegex.exec(item);
+    const sourceMatch = sourceRegex.exec(item);
+    const descMatch = descRegex.exec(item);
+    
+    const title = titleMatch ? (titleMatch[1] || titleMatch[2] || '').trim() : '';
+    const url = linkMatch ? linkMatch[1].trim() : '';
+    const publishedAt = pubDateMatch ? pubDateMatch[1].trim() : new Date().toISOString();
+    const source = sourceMatch ? sourceMatch[1].trim() : 'Google News';
+    const description = descMatch ? (descMatch[1] || descMatch[2] || '').replace(/<[^>]*>/g, '').trim() : '';
+    
+    if (title && url) {
+      articles.push({
+        title: decodeHTMLEntities(title),
+        description: decodeHTMLEntities(description).slice(0, 200),
+        url,
+        source: decodeHTMLEntities(source),
+        publishedAt: new Date(publishedAt).toISOString(),
+      });
+    }
+  }
+  
+  return articles.slice(0, 5);
+}
+
+function decodeHTMLEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ');
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -73,40 +135,37 @@ export async function GET(request: Request) {
     
     for (const code of countryCodes.slice(0, 5)) {
       const upperCode = code.toUpperCase();
-      const searchTerm = countrySearchTerms[upperCode] || code;
-      
-      // Using GNews API (free tier: 100 requests/day)
-      // You can also use NewsAPI, Currents API, or other news APIs
-      const apiKey = process.env.GNEWS_API_KEY;
+      const countryInfo = countrySearchTerms[upperCode] || { en: code, pt: code };
       
       let articles: NewsArticle[] = [];
       
-      if (apiKey) {
-        const response = await fetch(
-          `https://gnews.io/api/v4/search?q=${encodeURIComponent(searchTerm)}&lang=en&country=any&max=5&apikey=${apiKey}`,
-          { next: { revalidate: 3600 } } // Cache for 1 hour
-        );
+      try {
+        // Use Google News RSS feed (free, no API key needed)
+        const searchQuery = encodeURIComponent(`${countryInfo.en} news`);
+        const rssUrl = `https://news.google.com/rss/search?q=${searchQuery}&hl=en-US&gl=US&ceid=US:en`;
+        
+        const response = await fetch(rssUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; NewsBot/1.0)',
+          },
+          next: { revalidate: 1800 } // Cache for 30 minutes
+        });
         
         if (response.ok) {
-          const data = await response.json();
-          articles = (data.articles || []).map((article: any) => ({
-            title: article.title,
-            description: article.description,
-            url: article.url,
-            source: article.source?.name || 'Unknown',
-            publishedAt: article.publishedAt,
-            image: article.image,
-          }));
+          const xml = await response.text();
+          articles = parseRSS(xml);
         }
+      } catch (fetchError) {
+        console.error(`Failed to fetch news for ${upperCode}:`, fetchError);
       }
       
-      // Fallback: Generate placeholder news if no API key or API fails
+      // Fallback if RSS fails
       if (articles.length === 0) {
-        articles = generatePlaceholderNews(searchTerm, upperCode);
+        articles = generateFallbackNews(countryInfo.pt, upperCode);
       }
       
       allNews.push({
-        country: searchTerm,
+        country: countryInfo.pt,
         code: upperCode,
         articles,
       });
@@ -119,22 +178,21 @@ export async function GET(request: Request) {
   }
 }
 
-function generatePlaceholderNews(country: string, code: string): NewsArticle[] {
+function generateFallbackNews(country: string, code: string): NewsArticle[] {
   const now = new Date();
   const topics = [
-    { title: `${country} announces new economic policies`, desc: `Government officials in ${country} have unveiled new economic measures aimed at boosting growth and employment.` },
-    { title: `Tourism in ${country} reaches new heights`, desc: `The tourism sector in ${country} has seen significant growth this year, with visitors from around the world.` },
-    { title: `${country} strengthens international relations`, desc: `Diplomatic efforts continue as ${country} works to strengthen ties with neighboring countries and global partners.` },
-    { title: `Technology sector booms in ${country}`, desc: `The tech industry in ${country} continues to expand, attracting investment and talent from across the globe.` },
-    { title: `Cultural events highlight ${country}'s heritage`, desc: `A series of cultural events and festivals celebrate the rich heritage and traditions of ${country}.` },
+    { title: `Últimas notícias de ${country}`, desc: `Acompanhe as principais notícias e acontecimentos de ${country}.` },
+    { title: `${country}: economia e política`, desc: `Análises sobre a situação econômica e política atual de ${country}.` },
+    { title: `Turismo em ${country}`, desc: `Descubra os principais destinos e dicas para visitar ${country}.` },
+    { title: `${country} no cenário internacional`, desc: `Como ${country} se posiciona nas relações internacionais.` },
+    { title: `Cultura e sociedade em ${country}`, desc: `Conheça mais sobre a cultura e costumes de ${country}.` },
   ];
   
   return topics.map((topic, i) => ({
     title: topic.title,
     description: topic.desc,
     url: `https://news.google.com/search?q=${encodeURIComponent(country)}`,
-    source: 'News Aggregator',
-    publishedAt: new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString(),
-    image: undefined,
+    source: 'Google News',
+    publishedAt: new Date(now.getTime() - i * 6 * 60 * 60 * 1000).toISOString(),
   }));
 }

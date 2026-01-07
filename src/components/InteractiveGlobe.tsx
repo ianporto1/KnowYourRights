@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo, useRef, useCallback } from 'react';
+import { useState, memo, useRef, useCallback, useEffect } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -192,8 +192,126 @@ function InteractiveGlobe({
   const lastPinchDistance = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // Rotação interna para performance (evita re-renders durante arraste)
+  const targetRotation = useRef<[number, number, number]>([0, 0, 0]);
+  const currentRotation = useRef<[number, number, number]>([0, 0, 0]);
+  
+  // Inércia para movimento fluido
+  const velocity = useRef({ x: 0, y: 0 });
+  const velocityHistory = useRef<Array<{ x: number; y: number; t: number }>>([]);
+  const animationFrame = useRef<number | null>(null);
+  const isAnimating = useRef(false);
+  
   const baseScale = 210;
   const currentScale = baseScale * zoom;
+
+  // Lerp suave
+  const lerp = (start: number, end: number, factor: number) => {
+    return start + (end - start) * factor;
+  };
+
+  // Loop de animação principal - sempre rodando para suavizar
+  const animationLoop = useCallback(() => {
+    const lerpFactor = isDragging.current ? 0.4 : 0.15; // Mais responsivo durante arraste
+    const friction = 0.92;
+    const minVelocity = 0.005;
+    
+    // Aplica inércia quando não está arrastando
+    if (!isDragging.current) {
+      if (Math.abs(velocity.current.x) > minVelocity || Math.abs(velocity.current.y) > minVelocity) {
+        targetRotation.current = [
+          targetRotation.current[0] + velocity.current.x,
+          Math.max(-60, Math.min(60, targetRotation.current[1] + velocity.current.y)),
+          targetRotation.current[2]
+        ];
+        
+        velocity.current.x *= friction;
+        velocity.current.y *= friction;
+      } else {
+        velocity.current = { x: 0, y: 0 };
+      }
+    }
+    
+    // Interpola suavemente para a rotação alvo
+    const newRotation: [number, number, number] = [
+      lerp(currentRotation.current[0], targetRotation.current[0], lerpFactor),
+      lerp(currentRotation.current[1], targetRotation.current[1], lerpFactor),
+      lerp(currentRotation.current[2], targetRotation.current[2], lerpFactor)
+    ];
+    
+    // Só atualiza o state se houver mudança significativa
+    const hasChanged = 
+      Math.abs(newRotation[0] - currentRotation.current[0]) > 0.001 ||
+      Math.abs(newRotation[1] - currentRotation.current[1]) > 0.001;
+    
+    if (hasChanged) {
+      currentRotation.current = newRotation;
+      setRotation([...newRotation]);
+    }
+    
+    // Continua animando se ainda há movimento
+    const stillMoving = 
+      Math.abs(velocity.current.x) > minVelocity ||
+      Math.abs(velocity.current.y) > minVelocity ||
+      Math.abs(targetRotation.current[0] - currentRotation.current[0]) > 0.01 ||
+      Math.abs(targetRotation.current[1] - currentRotation.current[1]) > 0.01;
+    
+    if (stillMoving || isDragging.current) {
+      animationFrame.current = requestAnimationFrame(animationLoop);
+    } else {
+      isAnimating.current = false;
+    }
+  }, []);
+
+  // Inicia o loop de animação
+  const startAnimation = useCallback(() => {
+    if (!isAnimating.current) {
+      isAnimating.current = true;
+      animationFrame.current = requestAnimationFrame(animationLoop);
+    }
+  }, [animationLoop]);
+
+  // Para a animação
+  const stopAnimation = useCallback(() => {
+    if (animationFrame.current) {
+      cancelAnimationFrame(animationFrame.current);
+      animationFrame.current = null;
+    }
+    isAnimating.current = false;
+  }, []);
+
+  // Calcula velocidade média dos últimos movimentos
+  const calculateVelocity = useCallback(() => {
+    const now = performance.now();
+    const recentMoves = velocityHistory.current.filter(v => now - v.t < 100);
+    
+    if (recentMoves.length < 2) {
+      velocity.current = { x: 0, y: 0 };
+      return;
+    }
+    
+    let totalX = 0, totalY = 0;
+    for (const move of recentMoves) {
+      totalX += move.x;
+      totalY += move.y;
+    }
+    
+    // Média ponderada com boost para movimento rápido
+    const avgX = totalX / recentMoves.length;
+    const avgY = totalY / recentMoves.length;
+    const speed = Math.sqrt(avgX * avgX + avgY * avgY);
+    const boost = Math.min(2, 1 + speed * 0.1);
+    
+    velocity.current = {
+      x: avgX * boost * 0.8,
+      y: avgY * boost * 0.8
+    };
+  }, []);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => stopAnimation();
+  }, [stopAnimation]);
 
   const getCountryCode = useCallback((name: string) => {
     return NAME_TO_ISO[name] || null;
@@ -225,10 +343,13 @@ function InteractiveGlobe({
   }, [getCountryCode, countries, onCountryClick]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    velocity.current = { x: 0, y: 0 };
+    velocityHistory.current = [];
     isDragging.current = true;
     dragStarted.current = false;
     lastPos.current = { x: e.clientX, y: e.clientY };
-  }, []);
+    startAnimation();
+  }, [startAnimation]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging.current) return;
@@ -236,21 +357,44 @@ function InteractiveGlobe({
     const dx = e.clientX - lastPos.current.x;
     const dy = e.clientY - lastPos.current.y;
     
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+    if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
       dragStarted.current = true;
-      setRotation(prev => [
-        prev[0] + dx * 0.3,
-        Math.max(-60, Math.min(60, prev[1] - dy * 0.3)),
-        prev[2]
-      ]);
+      
+      const sensitivity = 0.35;
+      const rotX = dx * sensitivity;
+      const rotY = -dy * sensitivity;
+      
+      // Atualiza rotação alvo diretamente
+      targetRotation.current = [
+        targetRotation.current[0] + rotX,
+        Math.max(-60, Math.min(60, targetRotation.current[1] + rotY)),
+        targetRotation.current[2]
+      ];
+      
+      // Guarda histórico para calcular velocidade
+      velocityHistory.current.push({
+        x: rotX,
+        y: rotY,
+        t: performance.now()
+      });
+      
+      // Mantém só os últimos 10 movimentos
+      if (velocityHistory.current.length > 10) {
+        velocityHistory.current.shift();
+      }
+      
       lastPos.current = { x: e.clientX, y: e.clientY };
     }
   }, []);
 
   const handleMouseUp = useCallback(() => {
+    if (isDragging.current && dragStarted.current) {
+      calculateVelocity();
+    }
     isDragging.current = false;
+    velocityHistory.current = [];
     setTimeout(() => { dragStarted.current = false; }, 50);
-  }, []);
+  }, [calculateVelocity]);
 
   // Zoom com scroll do mouse
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -261,38 +405,53 @@ function InteractiveGlobe({
 
   // Touch events para mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    velocity.current = { x: 0, y: 0 };
+    velocityHistory.current = [];
     if (e.touches.length === 1) {
-      // Single touch - drag
       isDragging.current = true;
       dragStarted.current = false;
       lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      startAnimation();
     } else if (e.touches.length === 2) {
-      // Pinch to zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
     }
-  }, []);
+  }, [startAnimation]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault(); // Previne scroll da página
+    e.preventDefault();
     
     if (e.touches.length === 1 && isDragging.current) {
-      // Single touch - drag rotation
       const dx = e.touches[0].clientX - lastPos.current.x;
       const dy = e.touches[0].clientY - lastPos.current.y;
       
-      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
         dragStarted.current = true;
-        setRotation(prev => [
-          prev[0] + dx * 0.5, // Sensibilidade maior para touch
-          Math.max(-60, Math.min(60, prev[1] - dy * 0.5)),
-          prev[2]
-        ]);
+        
+        const sensitivity = 0.45;
+        const rotX = dx * sensitivity;
+        const rotY = -dy * sensitivity;
+        
+        targetRotation.current = [
+          targetRotation.current[0] + rotX,
+          Math.max(-60, Math.min(60, targetRotation.current[1] + rotY)),
+          targetRotation.current[2]
+        ];
+        
+        velocityHistory.current.push({
+          x: rotX,
+          y: rotY,
+          t: performance.now()
+        });
+        
+        if (velocityHistory.current.length > 10) {
+          velocityHistory.current.shift();
+        }
+        
         lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       }
     } else if (e.touches.length === 2 && lastPinchDistance.current !== null) {
-      // Pinch to zoom
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const distance = Math.sqrt(dx * dx + dy * dy);
@@ -305,10 +464,14 @@ function InteractiveGlobe({
   }, []);
 
   const handleTouchEnd = useCallback(() => {
+    if (isDragging.current && dragStarted.current) {
+      calculateVelocity();
+    }
     isDragging.current = false;
     lastPinchDistance.current = null;
+    velocityHistory.current = [];
     setTimeout(() => { dragStarted.current = false; }, 50);
-  }, []);
+  }, [calculateVelocity]);
 
   const hoveredData = hoveredCountry ? getCountryData(hoveredCountry) : null;
   const hoveredStats = hoveredData ? (stats[hoveredData.code] || { green: 0, yellow: 0, red: 0 }) : null;
@@ -355,7 +518,11 @@ function InteractiveGlobe({
           }}
           width={450}
           height={450}
-          style={{ width: '100%', height: '100%' }}
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            willChange: 'transform',
+          }}
         >
           <Sphere id="sphere" fill="#1e3a5f" stroke="#3b82f6" strokeWidth={1.5} />
           <Graticule stroke="#3b82f650" strokeWidth={0.4} />
@@ -507,28 +674,40 @@ function InteractiveGlobe({
       {/* Botões de controle */}
       <div className="flex gap-2 mt-2 flex-wrap justify-center px-4">
         <button
-          onClick={() => setRotation(prev => [prev[0] - 40, prev[1], prev[2]])}
+          onClick={() => {
+            targetRotation.current = [targetRotation.current[0] - 40, targetRotation.current[1], targetRotation.current[2]];
+            startAnimation();
+          }}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para oeste"
         >
           ← <span className="hidden sm:inline">Oeste</span>
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0] + 40, prev[1], prev[2]])}
+          onClick={() => {
+            targetRotation.current = [targetRotation.current[0] + 40, targetRotation.current[1], targetRotation.current[2]];
+            startAnimation();
+          }}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para leste"
         >
           <span className="hidden sm:inline">Leste</span> →
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0], Math.max(-60, prev[1] + 20), prev[2]])}
+          onClick={() => {
+            targetRotation.current = [targetRotation.current[0], Math.max(-60, targetRotation.current[1] + 20), targetRotation.current[2]];
+            startAnimation();
+          }}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para cima"
         >
           ↑
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0], Math.min(60, prev[1] - 20), prev[2]])}
+          onClick={() => {
+            targetRotation.current = [targetRotation.current[0], Math.min(60, targetRotation.current[1] - 20), targetRotation.current[2]];
+            startAnimation();
+          }}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para baixo"
         >
@@ -549,7 +728,12 @@ function InteractiveGlobe({
           🔍−
         </button>
         <button
-          onClick={() => { setRotation([0, 0, 0]); setZoom(1); }}
+          onClick={() => {
+            targetRotation.current = [0, 0, 0];
+            velocity.current = { x: 0, y: 0 };
+            startAnimation();
+            setZoom(1);
+          }}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Resetar visualização"
         >

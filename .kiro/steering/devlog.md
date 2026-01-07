@@ -510,3 +510,122 @@ CSS additions:
 - Line clamp utilities
 
 **Type:** fix
+
+
+---
+
+## [2026-01-07] - News Section Feature
+
+**Files affected:**
+- src/app/api/news/route.ts (new)
+- src/components/NewsSection.tsx (new)
+- src/app/[code]/page.tsx
+- src/app/compare/page.tsx
+
+**Description:**
+Added news section to country and comparison pages:
+
+API Features:
+- GET /api/news?countries=BR,US endpoint
+- Supports GNews API (requires GNEWS_API_KEY env var)
+- Fallback to placeholder news if no API key
+- Caches results for 1 hour
+- Country name mapping for better search results
+
+NewsSection Component:
+- Tab navigation for multiple countries
+- Article cards with image, title, description
+- Source and relative time display
+- Link to Google News for more articles
+- Loading skeleton state
+- Error handling
+
+Integration:
+- Country page: Shows news for current country
+- Compare page: Shows news with tabs for each selected country
+
+**Type:** feature
+
+
+---
+
+## [2026-01-07] - Laws Expansion & Official Links
+
+**Files affected:**
+- src/app/[code]/page.tsx
+- Supabase: cartilha_entries table (2024 new entries)
+
+**Description:**
+Expanded law coverage and added official legislation links:
+
+New topics added to all 200 countries:
+- Gorjeta em restaurantes
+- Fumar em locais públicos
+- Idade mínima para beber
+- Transporte público
+- Seguro de viagem
+- Visto de turista
+- Moeda e câmbio
+- Medicamentos controlados
+- Tatuagens e piercings
+- Animais de estimação
+- Drones
+- Comida de rua
+- Água da torneira
+- Tomadas elétricas
+- Propina e corrupção
+- Números de emergência
+
+Official law links added for 40+ countries:
+- Brazil: Planalto
+- USA: USA.gov
+- Germany: Gesetze im Internet
+- Japan: e-Gov Law Search
+- UK: legislation.gov.uk
+- France: Légifrance
+- And 35+ more countries
+
+Statistics:
+- Total laws: 7,706 entries
+- Min per country: 36 laws
+- Max per country: 79 laws (Japan)
+- Average: 38.5 laws per country
+
+**Type:** feature
+
+
+---
+
+## [2026-01-07] - Admin Similarity Detection
+
+**Files affected:**
+- src/app/api/admin/check-similarity/route.ts (new)
+- src/app/admin/entries/page.tsx
+
+**Description:**
+Implemented AI-powered similarity detection for admin entry creation:
+
+Similarity Algorithm:
+- Jaccard similarity for word-based comparison
+- Levenshtein distance for string similarity
+- Combined score: 60% topic match + 40% content match
+- Threshold: 35% similarity to flag as potential duplicate
+
+Features:
+- Real-time similarity check while typing (debounced 500ms)
+- Visual warning with similarity percentage badges
+- Color-coded severity (red >80%, orange >60%, yellow >35%)
+- "Sobrescrever" button to update existing entry
+- Confirmation modal showing old vs new data side-by-side
+- Automatic form population for editing
+
+User Flow:
+1. User starts creating new entry
+2. System checks for similar entries in same country/category
+3. If similar found, shows warning with options
+4. User can click "Sobrescrever" to update existing entry
+5. Modal shows comparison before confirming
+6. Entry is updated instead of creating duplicate
+
+**Type:** feature
+
