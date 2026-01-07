@@ -301,3 +301,74 @@ Key topics covered per country:
 RAG documents auto-synced via trigger (1345 docs total)
 
 **Type:** data
+
+
+---
+
+## [2026-01-07] - Compare Page Overhaul
+
+**Files affected:**
+- src/app/compare/page.tsx (rewritten)
+- src/app/api/compare/route.ts
+
+**Description:**
+Complete redesign of the comparison page with visual and logical improvements:
+
+Visual improvements:
+- Country selector with search and region grouping (Americas, Europe, Asia, etc.)
+- Selected countries shown as removable chips
+- Statistics summary card with comparison metrics
+- Stacked bar charts showing status distribution per country
+- Two view modes: Grouped (by category) and Table
+- Collapsible category sections with topic counts
+- Difference indicators (orange badges/dots)
+- Smooth animations on load
+
+Logical improvements:
+- Increased country limit from 3 to 5
+- API returns grouped comparisons by category
+- Statistics calculation (total topics, differences count, percentage)
+- Per-country status distribution stats
+- hasDifferences flag pre-calculated server-side
+- Share button to copy comparison URL
+
+**Type:** feature
+
+
+---
+
+## [2026-01-07] - Country Page Overhaul
+
+**Files affected:**
+- src/app/[code]/page.tsx (rewritten)
+- src/app/globals.css
+
+**Description:**
+Complete redesign of the country detail page with visual and logical improvements:
+
+Visual improvements:
+- Hero section with gradient background and pattern overlay
+- Large flag with drop shadow
+- Country metadata pills (language, currency, timezone, capital)
+- Stats card with donut chart floating on hero
+- Critical alerts section for red-status laws (collapsible)
+- Sticky sidebar with category navigation (desktop)
+- View mode toggle (grid/list)
+- Reading progress bar
+- Favorite star button on each card
+
+Logical improvements:
+- Favorites system with localStorage persistence
+- Read topics tracking with progress percentage
+- Export to PDF functionality (prints favorited topics)
+- Category counts with red-status indicators
+- Smooth scroll to categories from hero
+- Country metadata for 15+ countries (region, language, currency, timezone, capital)
+- Improved mobile responsiveness
+
+New CSS classes:
+- .hero-section, .hero-pattern, .hero-pill, .hero-stats-card
+- .alert-card
+- .sidebar-category
+
+**Type:** feature

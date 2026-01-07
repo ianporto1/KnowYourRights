@@ -122,34 +122,7 @@ export default function Home() {
             countries={countries}
             stats={stats}
             onCountryClick={handleCountryClick}
-            freedomRange={freedomRange}
           />
-          
-          <div className="max-w-md mx-auto mt-6">
-            <label className="block text-sm text-gray-500 dark:text-gray-400 mb-2 text-center">
-              Filtrar por índice de liberdade: {freedomRange[0]} - {freedomRange[1]}
-            </label>
-            <div className="flex gap-2 items-center">
-              <span className="text-xs text-red-500">0</span>
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={freedomRange[0]}
-                onChange={(e) => setFreedomRange([Number(e.target.value), freedomRange[1]])}
-                className="flex-1"
-              />
-              <input
-                type="range"
-                min="0"
-                max="10"
-                value={freedomRange[1]}
-                onChange={(e) => setFreedomRange([freedomRange[0], Number(e.target.value)])}
-                className="flex-1"
-              />
-              <span className="text-xs text-green-500">10</span>
-            </div>
-          </div>
         </div>
       )}
 
@@ -274,23 +247,6 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mt-12 p-6 card">
-        <h3 className="font-bold mb-4 text-center">Legenda dos Status</h3>
-        <div className="flex flex-wrap justify-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="status-badge status-badge-green text-white">🟢</span>
-            <span>Permitido</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="status-badge status-badge-yellow text-white">🟡</span>
-            <span>Restrições</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="status-badge status-badge-red text-white">🔴</span>
-            <span>Proibido</span>
-          </div>
-        </div>
-      </div>
     </main>
   );
 }
