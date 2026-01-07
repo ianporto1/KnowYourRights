@@ -115,3 +115,117 @@ Improved comparison feature:
 - Color-coded status cells
 
 **Type:** feature
+
+
+---
+
+## [2026-01-07] - App Improvements - Phase 1
+
+**Files affected:**
+- src/components/ThemeProvider.tsx (new)
+- src/components/ThemeToggle.tsx (new)
+- src/components/SkeletonCard.tsx (new)
+- src/components/StatusSummaryBadge.tsx (new)
+- src/components/DonutChart.tsx (new)
+- src/components/CountryNavigation.tsx (new)
+- src/app/layout.tsx
+- src/app/page.tsx
+- src/app/[code]/page.tsx
+- src/app/compare/page.tsx
+- src/app/api/countries/stats/route.ts (new)
+- src/app/api/compare/route.ts
+
+**Description:**
+Implemented UX improvements:
+- Dark mode toggle with localStorage persistence
+- Skeleton loading placeholders
+- Status summary badges on country cards
+- Freedom index filter slider
+- Country sorting (name, freedom asc/desc)
+- Donut chart for status distribution
+- Topic search within country page
+- Expandable topic cards
+- Country navigation arrows
+- Share topic button
+- Category filter in comparison
+- "Show only differences" toggle
+- Shareable URL for comparisons
+
+**Type:** feature
+
+---
+
+## [2026-01-07] - Admin Panel
+
+**Files affected:**
+- src/middleware.ts (new)
+- src/lib/supabase-server.ts (new)
+- src/lib/supabase-browser.ts (new)
+- src/app/admin/layout.tsx (new)
+- src/app/admin/page.tsx (new)
+- src/app/admin/login/page.tsx (new)
+- src/app/admin/countries/page.tsx (new)
+- src/app/admin/categories/page.tsx (new)
+- src/app/admin/entries/page.tsx (new)
+
+**Description:**
+Implemented admin panel with:
+- Supabase Auth integration
+- Protected routes via middleware
+- Login page with email/password
+- Dashboard with statistics
+- CRUD for countries, categories, and entries
+- Sidebar navigation
+- Logout functionality
+
+**Type:** feature
+
+---
+
+## [2026-01-07] - Chat Widget with RAG
+
+**Files affected:**
+- src/components/chat/ChatWidget.tsx (new)
+- src/components/chat/ChatMessage.tsx (new)
+- src/components/chat/ChatSuggestions.tsx (new)
+- src/lib/rag.ts (new)
+- src/app/api/chat/route.ts (new)
+- src/app/layout.tsx
+
+**Description:**
+Implemented chat widget with RAG:
+- Floating chat button
+- Chat panel with message history
+- Suggested questions based on context
+- Keyword extraction from user messages
+- Country detection in messages
+- Supabase query for relevant entries
+- Prompt construction with RAG context
+- AgentRouter API integration
+- Fallback responses when API unavailable
+- Rate limiting (20 req/min)
+- Markdown rendering in responses
+
+**Type:** feature
+
+
+---
+
+## [2026-01-07] - Property Tests Implementation
+
+**Files affected:**
+- vitest.config.ts (new)
+- src/__tests__/setup.ts (new)
+- src/__tests__/property-tests.test.ts (new)
+- package.json
+
+**Description:**
+Implemented property-based tests with Vitest and fast-check:
+- 25 property tests covering all major features
+- Tests for freedom index filter, sorting, search, category filter
+- Tests for differences filter, URL round-trip, theme persistence
+- Tests for keyword extraction, country detection, prompt construction
+- Tests for CRUD validation, chat context routing
+- Mocked Supabase client for isolated testing
+
+**Type:** test

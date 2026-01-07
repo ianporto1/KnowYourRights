@@ -33,12 +33,13 @@ export async function POST(request: Request) {
 
   // Group by topic
   const comparisons = topics.map(topic => {
+    const firstEntry = entries?.find(e => e.topic === topic);
     const topicEntries = upperCodes.map(code => {
       const country = countriesData?.find(c => c.code === code);
       const entry = entries?.find(e => e.country_code === code && e.topic === topic);
       return { country, entry: entry || null };
     });
-    return { topic, entries: topicEntries };
+    return { topic, category_id: firstEntry?.category_id || null, entries: topicEntries };
   });
 
   return NextResponse.json({ comparisons });
