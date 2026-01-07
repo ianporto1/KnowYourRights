@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { TravelAdvisoryBadge } from '@/components/TravelAdvisoryBadge';
+import { TravelAdvisoryLevel, getTravelAdvisoryConfig } from '@/lib/travel-advisory';
 
 interface Country {
   code: string;
@@ -42,6 +44,7 @@ interface GroupedComparison {
 interface CountryStats {
   country: Country;
   stats: { green: number; yellow: number; red: number; total: number };
+  travelAdvisory: TravelAdvisoryLevel;
 }
 
 interface Statistics {
@@ -279,9 +282,9 @@ function ComparePageContent() {
   const totalFiltered = filteredGrouped.reduce((acc, g) => acc + g.comparisons.length, 0);
 
   return (
-    <main className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto relative">
+    <main className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto relative">
       {/* Theme Toggle */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>
 
@@ -292,17 +295,17 @@ function ComparePageContent() {
         </p>
       </div>
 
-      <Link href="/" className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 mb-6 font-medium">
+      <Link href="/" className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 mb-6 font-medium transition-colors">
         ← Voltar para países
       </Link>
 
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 lg:mb-8 text-center bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent tracking-tight">
         🔄 Comparar Países
       </h1>
 
       {/* Country Selector with Search */}
-      <div className="card p-6 mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+      <div className="card p-4 sm:p-6 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
           <div>
             <label className="block text-sm font-semibold mb-1">
               🌍 Selecione 2 a 5 países para comparar
@@ -316,7 +319,7 @@ function ComparePageContent() {
             placeholder="🔍 Buscar país..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 w-full md:w-64"
+            className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 w-full lg:w-72 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
           />
         </div>
 
@@ -327,35 +330,35 @@ function ComparePageContent() {
               <button
                 key={c.code}
                 onClick={() => toggleCountry(c.code)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800 transition"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
               >
-                {c.flag} {c.name}
-                <span className="text-indigo-400 hover:text-indigo-600">✕</span>
+                <span className="text-lg">{c.flag}</span> {c.name}
+                <span className="text-indigo-400 hover:text-indigo-600 ml-1">✕</span>
               </button>
             ))}
           </div>
         )}
 
         {/* Countries by region */}
-        <div className="max-h-64 overflow-y-auto space-y-4 pr-2">
+        <div className="max-h-72 lg:max-h-80 overflow-y-auto space-y-4 pr-2 scrollbar-thin">
           {regionOrder.map(region => {
             const regionCountries = filteredCountriesByRegion[region];
             if (!regionCountries || regionCountries.length === 0) return null;
             return (
               <div key={region}>
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 sticky top-0 bg-white dark:bg-gray-900 py-1">
                   {region} ({regionCountries.length})
                 </h3>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {regionCountries.map(c => (
                     <button
                       key={c.code}
                       onClick={() => toggleCountry(c.code)}
                       disabled={selected.length >= 5 && !selected.includes(c.code)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         selected.includes(c.code)
-                          ? 'bg-indigo-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
+                          ? 'bg-indigo-500 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 hover:shadow disabled:opacity-40 disabled:cursor-not-allowed'
                       }`}
                     >
                       {c.flag} {c.name}
@@ -405,10 +408,11 @@ function ComparePageContent() {
           {/* Country stats bars */}
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300">Distribuição por país</h3>
-            {statistics.countryStats.map(({ country, stats }) => (
+            {statistics.countryStats.map(({ country, stats, travelAdvisory }) => (
               <div key={country?.code} className="flex items-center gap-3">
                 <span className="text-xl w-8">{country?.flag}</span>
                 <span className="text-sm font-medium w-24 truncate">{country?.name}</span>
+                <TravelAdvisoryBadge level={travelAdvisory} size="sm" />
                 <div className="flex-1 flex h-6 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800">
                   {stats.total > 0 && (
                     <>

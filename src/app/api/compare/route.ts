@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { calculateTravelAdvisory } from '@/lib/travel-advisory';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +88,20 @@ export async function POST(request: Request) {
     const green = countryEntries.filter(e => e.status === 'green').length;
     const yellow = countryEntries.filter(e => e.status === 'yellow').length;
     const red = countryEntries.filter(e => e.status === 'red').length;
-    return { country, stats: { green, yellow, red, total: countryEntries.length } };
+    const total = countryEntries.length;
+    
+    // Calculate travel advisory for each country
+    const travelAdvisory = calculateTravelAdvisory(
+      country?.freedom_index || 5,
+      { green, yellow, red, total },
+      countryEntries.map(e => ({ topic: e.topic, status: e.status }))
+    );
+    
+    return { 
+      country, 
+      stats: { green, yellow, red, total },
+      travelAdvisory
+    };
   });
 
   return NextResponse.json({ 

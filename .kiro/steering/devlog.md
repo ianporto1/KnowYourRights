@@ -434,3 +434,40 @@ Total: 20 universal topics with 100% coverage across 200 countries.
 BR vs US comparison now shows 42 complete topics.
 
 **Type:** fix
+
+
+---
+
+## [2026-01-07] - Travel Advisory System
+
+**Files affected:**
+- src/lib/travel-advisory.ts (new)
+- src/components/TravelAdvisoryBadge.tsx (new)
+- src/app/[code]/page.tsx
+- src/app/compare/page.tsx
+- src/app/api/compare/route.ts
+
+**Description:**
+Implemented automatic travel advisory calculation system:
+
+Advisory Levels:
+- ✅ Ok para viajar (safe) - Score >= 70
+- ⚠️ Viaje com cautela (caution) - Score 50-69
+- 🟠 Evite viagens não essenciais (avoid) - Score 30-49
+- 🔴 Não viaje (do_not_travel) - Score < 30
+
+Scoring Algorithm (0-100):
+- Freedom index: 40 points (0-10 scaled to 0-40)
+- Green laws percentage: +30 points
+- Red laws percentage: -30 points
+- Critical red topics: -5 points each (max -35)
+
+Critical topics that impact score:
+- Homossexualidade, Liberdade religiosa, Criticar o governo
+- Protestos públicos, VPN, Filmar policiais, Vestimenta
+
+Display locations:
+- Country page: Full banner with description
+- Compare page: Badge next to each country in stats
+
+**Type:** feature

@@ -7,6 +7,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { DonutChart } from '@/components/DonutChart';
 import { CountryNavigation } from '@/components/CountryNavigation';
 import { SkeletonGrid } from '@/components/SkeletonCard';
+import { TravelAdvisoryBanner } from '@/components/TravelAdvisoryBadge';
+import { calculateTravelAdvisory, TravelAdvisoryLevel } from '@/lib/travel-advisory';
 
 interface Country {
   code: string;
@@ -223,6 +225,13 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
   const getFreedomColor = (index: number) => index >= 7 ? '#22c55e' : index >= 5 ? '#f59e0b' : '#ef4444';
   const readProgress = Math.round((readTopics.size / entries.length) * 100);
 
+  // Calculate travel advisory
+  const travelAdvisory: TravelAdvisoryLevel = calculateTravelAdvisory(
+    country.freedom_index,
+    { ...statusCounts, total: entries.length },
+    entries.map(e => ({ topic: e.topic, status: e.status }))
+  );
+
   return (
     <main className="min-h-screen px-4 py-4 sm:p-6 md:p-8 max-w-6xl mx-auto mobile-safe-bottom">
       <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50"><ThemeToggle /></div>
@@ -230,6 +239,9 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
       <Link href="/" className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 mb-4 sm:mb-6 text-sm">
         ← Voltar
       </Link>
+
+      {/* Travel Advisory Banner */}
+      <TravelAdvisoryBanner level={travelAdvisory} countryName={country.name} />
 
       {/* Country Header Card */}
       <div className="card country-header-card p-4 sm:p-6 md:p-8 mb-4 sm:mb-6">
