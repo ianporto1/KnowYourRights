@@ -16,6 +16,7 @@ export async function POST(request: Request) {
   }
 
   const upperCodes = countries.map((c: string) => c.toUpperCase());
+  const numCountries = upperCodes.length;
 
   // Get countries info
   const { data: countriesData } = await supabase
@@ -36,11 +37,19 @@ export async function POST(request: Request) {
     .in('country_code', upperCodes)
     .order('topic');
 
-  // Get unique topics
-  const topics = [...new Set(entries?.map(e => e.topic) || [])];
+  // Get topics that exist in ALL selected countries (no gaps)
+  const topicCounts = new Map<string, number>();
+  entries?.forEach(e => {
+    topicCounts.set(e.topic, (topicCounts.get(e.topic) || 0) + 1);
+  });
+  
+  // Only include topics that have entries for ALL selected countries
+  const completeTopics = [...topicCounts.entries()]
+    .filter(([_, count]) => count >= numCountries)
+    .map(([topic]) => topic);
 
-  // Group by topic
-  const comparisons = topics.map(topic => {
+  // Group by topic (only complete topics)
+  const comparisons = completeTopics.map(topic => {
     const firstEntry = entries?.find(e => e.topic === topic);
     const topicEntries = upperCodes.map(code => {
       const country = countriesData?.find(c => c.code === code);
@@ -66,15 +75,15 @@ export async function POST(request: Request) {
     comparisons: comparisons.filter(c => c.category_id === cat.id)
   })).filter(g => g.comparisons.length > 0) || [];
 
-  // Calculate statistics
+  // Calculate statistics (only for complete topics)
   const totalTopics = comparisons.length;
   const topicsWithDifferences = comparisons.filter(c => c.hasDifferences).length;
   const differencePercentage = totalTopics > 0 ? Math.round((topicsWithDifferences / totalTopics) * 100) : 0;
 
-  // Status distribution per country
+  // Status distribution per country (only for complete topics)
   const countryStats = upperCodes.map(code => {
     const country = countriesData?.find(c => c.code === code);
-    const countryEntries = entries?.filter(e => e.country_code === code) || [];
+    const countryEntries = entries?.filter(e => e.country_code === code && completeTopics.includes(e.topic)) || [];
     const green = countryEntries.filter(e => e.status === 'green').length;
     const yellow = countryEntries.filter(e => e.status === 'yellow').length;
     const red = countryEntries.filter(e => e.status === 'red').length;

@@ -372,3 +372,65 @@ New CSS classes:
 - .sidebar-category
 
 **Type:** feature
+
+
+---
+
+## [2026-01-07] - Essential Topics Gap Fill
+
+**Files affected:**
+- Supabase: cartilha_entries table (2537 new entries)
+
+**Description:**
+Filled gaps in comparison data by adding 14 essential topics to all 200 countries:
+
+Essential topics added (1 per category):
+1. Nudez em praias (Afeto em público)
+2. Criticar o governo (Liberdade de expressão)
+3. VPN (Internet)
+4. Filmar policiais (Polícia & Estado)
+5. Álcool (Drogas & Álcool)
+6. Casamento homoafetivo (Direitos LGBTQ+)
+7. Liberdade religiosa (Religião)
+8. Vestimenta (Vestimenta)
+9. Fotografar instalações militares (Fotografia)
+10. Carteira internacional (Trânsito)
+11. Posse de arma (Armas)
+12. Cassinos (Jogos de Azar)
+13. Férias remuneradas (Direitos Trabalhistas)
+14. Proteção de dados pessoais (Privacidade)
+
+Status assigned based on regional patterns and known laws.
+Total entries: 3882 across 200 countries (avg 19.4 per country)
+
+**Type:** data
+
+
+---
+
+## [2026-01-07] - Comparison Gap Fix
+
+**Files affected:**
+- src/app/api/compare/route.ts
+- Supabase: cartilha_entries (632 new entries)
+
+**Description:**
+Fixed comparison gaps by:
+
+1. Added 6 more universal topics to all 200 countries:
+   - Beijo em público (5 gaps filled)
+   - Maconha (81 gaps filled)
+   - Homossexualidade (88 gaps filled)
+   - Protestos públicos (105 gaps filled)
+   - Maconha recreativa (167 gaps filled)
+   - Drogas (186 gaps filled)
+
+2. Modified compare API to only show topics that exist in ALL selected countries:
+   - No more empty cells in comparisons
+   - Statistics calculated only for complete topics
+   - Cleaner comparison experience
+
+Total: 20 universal topics with 100% coverage across 200 countries.
+BR vs US comparison now shows 42 complete topics.
+
+**Type:** fix

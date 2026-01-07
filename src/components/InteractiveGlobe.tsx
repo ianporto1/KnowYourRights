@@ -239,8 +239,8 @@ function InteractiveGlobe({
     if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
       dragStarted.current = true;
       setRotation(prev => [
-        prev[0] - dx * 0.3,
-        Math.max(-60, Math.min(60, prev[1] + dy * 0.3)),
+        prev[0] + dx * 0.3,
+        Math.max(-60, Math.min(60, prev[1] - dy * 0.3)),
         prev[2]
       ]);
       lastPos.current = { x: e.clientX, y: e.clientY };
@@ -285,8 +285,8 @@ function InteractiveGlobe({
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
         dragStarted.current = true;
         setRotation(prev => [
-          prev[0] - dx * 0.5, // Sensibilidade maior para touch
-          Math.max(-60, Math.min(60, prev[1] + dy * 0.5)),
+          prev[0] + dx * 0.5, // Sensibilidade maior para touch
+          Math.max(-60, Math.min(60, prev[1] - dy * 0.5)),
           prev[2]
         ]);
         lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -507,28 +507,28 @@ function InteractiveGlobe({
       {/* Botões de controle */}
       <div className="flex gap-2 mt-2 flex-wrap justify-center px-4">
         <button
-          onClick={() => setRotation(prev => [prev[0] + 40, prev[1], prev[2]])}
+          onClick={() => setRotation(prev => [prev[0] - 40, prev[1], prev[2]])}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para oeste"
         >
           ← <span className="hidden sm:inline">Oeste</span>
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0] - 40, prev[1], prev[2]])}
+          onClick={() => setRotation(prev => [prev[0] + 40, prev[1], prev[2]])}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para leste"
         >
           <span className="hidden sm:inline">Leste</span> →
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0], Math.max(-60, prev[1] - 20), prev[2]])}
+          onClick={() => setRotation(prev => [prev[0], Math.max(-60, prev[1] + 20), prev[2]])}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para cima"
         >
           ↑
         </button>
         <button
-          onClick={() => setRotation(prev => [prev[0], Math.min(60, prev[1] + 20), prev[2]])}
+          onClick={() => setRotation(prev => [prev[0], Math.min(60, prev[1] - 20), prev[2]])}
           className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors active:scale-95"
           aria-label="Girar para baixo"
         >

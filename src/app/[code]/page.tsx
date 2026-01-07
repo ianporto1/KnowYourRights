@@ -181,15 +181,15 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
 
   if (loading || !data) {
     return (
-      <div className="min-h-screen p-6 md:p-8 max-w-6xl mx-auto">
-        <div className="absolute top-4 right-4"><ThemeToggle /></div>
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6 animate-pulse" />
-        <div className="card p-8 mb-8 animate-pulse">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full" />
-            <div className="flex-1">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32" />
+      <div className="min-h-screen px-4 py-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
+        <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50"><ThemeToggle /></div>
+        <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-24 sm:w-32 mb-4 sm:mb-6 animate-pulse" />
+        <div className="card p-4 sm:p-6 md:p-8 mb-4 sm:mb-8 animate-pulse">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row">
+            <div className="w-20 h-14 sm:w-24 sm:h-24 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            <div className="flex-1 w-full">
+              <div className="h-6 sm:h-8 bg-gray-200 dark:bg-gray-700 rounded w-36 sm:w-48 mb-3 sm:mb-4 mx-auto md:mx-0" />
+              <div className="h-3 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded w-28 sm:w-32 mx-auto md:mx-0" />
             </div>
           </div>
         </div>
@@ -224,57 +224,69 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
   const readProgress = Math.round((readTopics.size / entries.length) * 100);
 
   return (
-    <main className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto">
-      <div className="absolute top-4 right-4"><ThemeToggle /></div>
+    <main className="min-h-screen px-4 py-4 sm:p-6 md:p-8 max-w-6xl mx-auto mobile-safe-bottom">
+      <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50"><ThemeToggle /></div>
       
-      <Link href="/" className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 mb-6 text-sm">
+      <Link href="/" className="inline-flex items-center gap-2 text-indigo-500 hover:text-indigo-600 mb-4 sm:mb-6 text-sm">
         ← Voltar
       </Link>
 
       {/* Country Header Card */}
-      <div className="card p-6 md:p-8 mb-6">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <img
-            src={`https://flagcdn.com/w160/${code.toLowerCase()}.png`}
-            alt={`Bandeira ${country.name}`}
-            className="w-24 h-16 md:w-32 md:h-20 object-cover rounded-lg shadow-lg"
-          />
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+      <div className="card country-header-card p-4 sm:p-6 md:p-8 mb-4 sm:mb-6">
+        <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row md:items-start">
+          {/* Flag and basic info */}
+          <div className="flex flex-col items-center md:items-start gap-3 w-full md:w-auto">
+            <img
+              src={`https://flagcdn.com/w160/${code.toLowerCase()}.png`}
+              alt={`Bandeira ${country.name}`}
+              className="flag-img w-20 h-14 sm:w-24 sm:h-16 md:w-32 md:h-20 object-cover rounded-lg shadow-lg"
+            />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white text-center md:text-left">
               {country.flag} {country.name}
             </h1>
-            <div className="flex flex-wrap justify-center md:justify-start gap-2 text-sm text-gray-500 dark:text-gray-400">
+          </div>
+          
+          {/* Meta info and freedom index */}
+          <div className="flex-1 w-full">
+            {/* Meta pills */}
+            <div className="meta-pills flex flex-wrap justify-center md:justify-start gap-1 sm:gap-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3">
               <span>📍 {meta.region}</span>
-              <span>•</span>
+              <span className="separator hidden sm:inline">•</span>
               <span>🗣️ {meta.language}</span>
-              <span>•</span>
+              <span className="separator hidden sm:inline">•</span>
               <span>💰 {meta.currency}</span>
             </div>
-            <div className="mt-3 flex items-center justify-center md:justify-start gap-2">
-              <span className="text-sm text-gray-500">Índice de Liberdade:</span>
-              <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all"
-                  style={{ 
-                    width: `${country.freedom_index * 10}%`,
-                    backgroundColor: getFreedomColor(country.freedom_index)
-                  }}
-                />
+            
+            {/* Freedom index */}
+            <div className="freedom-bar-container flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2 sm:gap-3">
+              <span className="text-xs sm:text-sm text-gray-500">Índice de Liberdade:</span>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex-1 sm:flex-none sm:w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all"
+                    style={{ 
+                      width: `${country.freedom_index * 10}%`,
+                      backgroundColor: getFreedomColor(country.freedom_index)
+                    }}
+                  />
+                </div>
+                <span className="font-bold text-sm" style={{ color: getFreedomColor(country.freedom_index) }}>
+                  {country.freedom_index}/10
+                </span>
               </div>
-              <span className="font-bold" style={{ color: getFreedomColor(country.freedom_index) }}>
-                {country.freedom_index}/10
-              </span>
             </div>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <DonutChart data={chartData} size={100} />
+          
+          {/* Donut chart */}
+          <div className="donut-container flex flex-col items-center gap-2 mt-2 md:mt-0">
+            <DonutChart data={chartData} size={80} />
             <span className="text-xs text-gray-500">{entries.length} leis</span>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between text-sm mb-1">
+        <div className="progress-section mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
             <span className="text-gray-500">Progresso de leitura</span>
             <span className="font-medium">{readProgress}%</span>
           </div>
@@ -286,17 +298,17 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
 
       {/* Critical Alerts */}
       {showAlerts && criticalAlerts.length > 0 && (
-        <div className="card card-red p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-red-700 dark:text-red-400">⚠️ Alertas Importantes</h3>
-            <button onClick={() => setShowAlerts(false)} className="text-red-500 hover:text-red-700 text-sm">
+        <div className="alert-card mb-4 sm:mb-6">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <h3 className="font-bold text-red-700 dark:text-red-400 text-sm sm:text-base">⚠️ Alertas Importantes</h3>
+            <button onClick={() => setShowAlerts(false)} className="text-red-500 hover:text-red-700 text-xs sm:text-sm">
               Ocultar
             </button>
           </div>
-          <ul className="space-y-2">
+          <ul className="space-y-1 sm:space-y-2">
             {criticalAlerts.map(alert => (
-              <li key={alert.id} className="text-sm text-red-600 dark:text-red-300">
-                • {alert.topic}: {alert.plain_explanation.slice(0, 100)}...
+              <li key={alert.id} className="text-xs sm:text-sm text-red-600 dark:text-red-300 leading-relaxed">
+                • <strong>{alert.topic}:</strong> {alert.plain_explanation.slice(0, 80)}...
               </li>
             ))}
           </ul>
@@ -304,31 +316,31 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
       )}
 
       {/* Actions Bar */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="actions-bar flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4 sm:mb-6">
         <button
           onClick={exportToPDF}
-          className="btn btn-secondary text-sm"
+          className="btn btn-secondary text-xs sm:text-sm flex items-center justify-center gap-2"
           disabled={favorites.size === 0}
         >
           📄 Exportar Favoritos ({favorites.size})
         </button>
         <button
           onClick={scrollToCategories}
-          className="btn btn-secondary text-sm"
+          className="btn btn-secondary text-xs sm:text-sm flex items-center justify-center gap-2"
         >
           📋 Ver Categorias
         </button>
         <div className="flex-1" />
-        <div className="flex gap-1">
+        <div className="flex gap-1 justify-center sm:justify-end">
           <button
             onClick={() => setViewMode('grid')}
-            className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+            className={`px-3 py-2 rounded-lg text-sm ${viewMode === 'grid' ? 'bg-indigo-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
           >
             ▦
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'list' ? 'bg-indigo-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
+            className={`px-3 py-2 rounded-lg text-sm ${viewMode === 'list' ? 'bg-indigo-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}
           >
             ☰
           </button>
@@ -341,16 +353,16 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
         placeholder="🔍 Buscar leis..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="search-input mb-6"
+        className="search-input mb-4 sm:mb-6"
       />
 
       {/* Categories */}
-      <div ref={categoriesRef} className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2">
+      <div ref={categoriesRef} className="category-scroll flex gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
         {categoryCounts.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`category-pill whitespace-nowrap ${activeCategory === cat.id ? 'active' : ''}`}
+            className={`category-pill whitespace-nowrap flex-shrink-0 ${activeCategory === cat.id ? 'active bg-indigo-500 text-white' : 'bg-gray-100 dark:bg-gray-800'}`}
           >
             {cat.icon} {cat.name_key}
             <span className="ml-1 text-xs opacity-70">({cat.count})</span>
@@ -363,12 +375,12 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
 
       {/* Entries Grid/List */}
       {filteredEntries.length === 0 ? (
-        <div className="card p-8 text-center">
-          <span className="text-4xl mb-4 block">🔍</span>
-          <p className="text-gray-500">Nenhuma lei encontrada</p>
+        <div className="card p-6 sm:p-8 text-center">
+          <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block">🔍</span>
+          <p className="text-gray-500 text-sm sm:text-base">Nenhuma lei encontrada</p>
         </div>
       ) : (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4' : 'flex flex-col gap-2 sm:gap-3'}>
           {filteredEntries.map((entry, i) => {
             const config = statusConfig[entry.status];
             const isExpanded = expandedCard === entry.id;
@@ -378,7 +390,7 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
             return (
               <div
                 key={entry.id}
-                className={`card ${config.cardClass} p-4 cursor-pointer transition-all animate-fade-in ${isExpanded ? 'ring-2 ring-indigo-500' : ''} ${isRead ? 'opacity-75' : ''}`}
+                className={`card topic-card-mobile ${config.cardClass} p-3 sm:p-4 cursor-pointer transition-all animate-fade-in ${isExpanded ? 'ring-2 ring-indigo-500' : ''} ${isRead ? 'opacity-75' : ''} ${viewMode === 'list' ? 'w-full hover:transform-none hover:rotate-0' : ''}`}
                 style={{ animationDelay: `${i * 0.05}s` }}
                 onClick={() => {
                   setExpandedCard(isExpanded ? null : entry.id);
@@ -386,42 +398,42 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
                 }}
               >
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex-1 text-sm sm:text-base leading-tight">
                     {entry.topic}
                   </h3>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button
                       onClick={(e) => toggleFavorite(entry.id, e)}
-                      className="text-lg hover:scale-110 transition-transform"
+                      className="text-base sm:text-lg hover:scale-110 transition-transform p-1"
                     >
                       {isFavorite ? '⭐' : '☆'}
                     </button>
-                    <span className={`${config.badgeClass} text-xs px-2 py-1 rounded-full`}>
+                    <span className={`status-badge-mobile ${config.badgeClass} text-[10px] sm:text-xs px-2 py-1 rounded-full whitespace-nowrap`}>
                       {config.icon} {config.label}
                     </span>
                   </div>
                 </div>
                 
-                <p className={`text-sm text-gray-600 dark:text-gray-300 ${isExpanded ? '' : 'line-clamp-2'}`}>
+                <p className={`text-xs sm:text-sm text-gray-600 dark:text-gray-300 leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
                   {entry.plain_explanation}
                 </p>
                 
                 {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3 animate-fade-in">
+                  <div className="expanded-content mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 sm:space-y-3 animate-fade-in">
                     <div>
-                      <span className="text-xs font-medium text-gray-500 uppercase">Base Legal</span>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{entry.legal_basis}</p>
+                      <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase">Base Legal</span>
+                      <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mt-1">{entry.legal_basis}</p>
                     </div>
                     {entry.cultural_note && (
                       <div>
-                        <span className="text-xs font-medium text-gray-500 uppercase">Nota Cultural</span>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{entry.cultural_note}</p>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase">Nota Cultural</span>
+                        <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 mt-1">{entry.cultural_note}</p>
                       </div>
                     )}
                     <div className="flex gap-2 pt-2">
                       <button
                         onClick={(e) => { e.stopPropagation(); copyToClipboard(entry.id, entry.topic); }}
-                        className="btn btn-secondary text-xs"
+                        className="btn btn-secondary text-xs w-full sm:w-auto"
                       >
                         {copiedId === entry.id ? '✓ Copiado!' : '🔗 Compartilhar'}
                       </button>
@@ -439,273 +451,6 @@ export default function CountryPage({ params }: { params: Promise<{ code: string
         countries={allCountries}
         currentCode={code}
       />
-    </main>
-  );
-}
-  return (
-    <main className="min-h-screen">
-      {/* Theme Toggle */}
-      <div className="fixed top-4 right-4 z-50"><ThemeToggle /></div>
-
-      {/* Hero Section */}
-      <div className="hero-section relative overflow-hidden">
-        <div className="hero-pattern absolute inset-0 opacity-10" />
-        <div className="relative max-w-6xl mx-auto px-6 py-12">
-          {/* Back & Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white font-medium">
-              ← Voltar
-            </Link>
-            <CountryNavigation currentCode={code} countries={allCountries} />
-          </div>
-
-          {/* Country Info */}
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            <div className="text-center lg:text-left flex-1">
-              <span className="text-9xl filter drop-shadow-2xl mb-4 block">{country.flag}</span>
-              <h1 className="text-5xl font-bold text-white mb-2">{country.name}</h1>
-              <p className="text-white/70 mb-4">{meta.capital} • {meta.region}</p>
-              
-              {/* Quick Info Pills */}
-              <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-6">
-                <span className="hero-pill">🗣️ {meta.language}</span>
-                <span className="hero-pill">💰 {meta.currency}</span>
-                <span className="hero-pill">🕐 {meta.timezone}</span>
-              </div>
-
-              {/* Freedom Index */}
-              <div className="max-w-sm mx-auto lg:mx-0">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-white/70">Índice de liberdade</span>
-                  <span className="font-bold text-white text-xl">{country.freedom_index}/10</span>
-                </div>
-                <div className="freedom-bar h-4 bg-white/20">
-                  <div className="freedom-bar-fill" style={{ width: `${country.freedom_index * 10}%`, background: getFreedomColor(country.freedom_index) }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Stats Card */}
-            <div className="hero-stats-card">
-              <DonutChart data={chartData} size={160} />
-              <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-                <div>
-                  <span className="text-2xl font-bold text-green-500">{statusCounts.green}</span>
-                  <p className="text-xs text-gray-500">Permitido</p>
-                </div>
-                <div>
-                  <span className="text-2xl font-bold text-yellow-500">{statusCounts.yellow}</span>
-                  <p className="text-xs text-gray-500">Restrições</p>
-                </div>
-                <div>
-                  <span className="text-2xl font-bold text-red-500">{statusCounts.red}</span>
-                  <p className="text-xs text-gray-500">Proibido</p>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500">Total: {entries.length} leis</p>
-                {favorites.size > 0 && (
-                  <p className="text-sm text-indigo-500">⭐ {favorites.size} favoritos</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Scroll indicator */}
-          <button onClick={scrollToCategories} className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 hover:text-white animate-bounce">
-            ↓ Ver leis
-          </button>
-        </div>
-      </div>
-
-      {/* Critical Alerts Section */}
-      {criticalAlerts.length > 0 && showAlerts && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-y border-red-200 dark:border-red-800">
-          <div className="max-w-6xl mx-auto px-6 py-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
-                🚨 Atenção - Leis Proibidas
-              </h2>
-              <button onClick={() => setShowAlerts(false)} className="text-red-400 hover:text-red-600 text-sm">
-                Ocultar
-              </button>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {criticalAlerts.map(alert => (
-                <div key={alert.id} className="alert-card flex-shrink-0 w-72">
-                  <h3 className="font-semibold text-red-700 dark:text-red-400 mb-1">{alert.topic}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{alert.plain_explanation}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Disclaimer */}
-        <div className="disclaimer mb-6">
-          <p className="disclaimer-text">⚠️ Informação educacional. Não é aconselhamento jurídico.</p>
-        </div>
-
-        {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="🔍 Buscar tópico..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input flex-1 min-w-[200px]"
-          />
-          
-          {/* View Toggle */}
-          <div className="view-toggle">
-            <button onClick={() => setViewMode('grid')} className={`view-toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}>
-              ▦ Grid
-            </button>
-            <button onClick={() => setViewMode('list')} className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}>
-              ☰ Lista
-            </button>
-          </div>
-
-          {/* Export */}
-          <button onClick={exportToPDF} className="btn btn-primary text-sm">
-            📄 Exportar ({favorites.size})
-          </button>
-        </div>
-
-        {/* Reading Progress */}
-        {readTopics.size > 0 && (
-          <div className="mb-6">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-500">Progresso de leitura</span>
-              <span className="font-medium">{readProgress}%</span>
-            </div>
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 transition-all" style={{ width: `${readProgress}%` }} />
-            </div>
-          </div>
-        )}
-
-        {/* Sticky Categories Sidebar + Content */}
-        <div className="flex gap-6" ref={categoriesRef}>
-          {/* Sidebar */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 space-y-2">
-              <h3 className="font-semibold text-gray-500 text-sm mb-3">CATEGORIAS</h3>
-              {categoryCounts.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`sidebar-category ${activeCategory === cat.id ? 'active' : ''}`}
-                >
-                  <span>{cat.icon} {cat.name_key}</span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-gray-400">{cat.count}</span>
-                    {cat.redCount > 0 && <span className="text-red-500 text-xs">({cat.redCount}🚫)</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          {/* Mobile Categories */}
-          <div className="lg:hidden flex gap-3 mb-6 flex-wrap justify-center w-full">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`category-pill ${activeCategory === cat.id ? 'category-pill-active' : 'category-pill-inactive'}`}
-              >
-                {cat.icon} {cat.name_key}
-              </button>
-            ))}
-          </div>
-
-          {/* Topic Cards */}
-          <div className="flex-1">
-            <div className={viewMode === 'grid' ? 'cards-grid' : 'space-y-4'}>
-              {filteredEntries.map((entry, i) => {
-                const config = statusConfig[entry.status];
-                const isExpanded = expandedCard === entry.id;
-                const isFavorite = favorites.has(entry.id);
-                const isRead = readTopics.has(entry.id);
-                
-                return (
-                  <div
-                    key={entry.id}
-                    className={`card topic-card ${config.cardClass} animate-fade-in cursor-pointer transition-all ${isExpanded ? 'col-span-full' : ''} ${isRead ? 'opacity-75' : ''}`}
-                    style={{ animationDelay: `${i * 0.03}s` }}
-                    onClick={() => { setExpandedCard(isExpanded ? null : entry.id); markAsRead(entry.id); }}
-                  >
-                    {/* Favorite button */}
-                    <button
-                      onClick={(e) => toggleFavorite(entry.id, e)}
-                      className="absolute top-3 right-3 text-xl z-10 hover:scale-125 transition-transform"
-                    >
-                      {isFavorite ? '⭐' : '☆'}
-                    </button>
-
-                    {/* Corner indicators */}
-                    <div className="topic-card-corner topic-card-corner-top">
-                      <div className={`status-badge ${config.badgeClass} text-white w-10 h-10 text-lg`}>
-                        {config.icon}
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="pt-14 pb-4 pr-8">
-                      <h3 className="text-xl font-bold mb-2">{entry.topic}</h3>
-                      {entry.cultural_note && !isExpanded && (
-                        <p className="text-xs text-gray-500 mb-2">💡 Tem nota cultural</p>
-                      )}
-                      <p className={`text-gray-700 dark:text-gray-300 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
-                        {entry.plain_explanation}
-                      </p>
-                      
-                      {isExpanded && (
-                        <>
-                          {entry.cultural_note && (
-                            <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 my-4">
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                💡 <span className="font-medium">Nota cultural:</span> {entry.cultural_note}
-                              </p>
-                            </div>
-                          )}
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">📜 {entry.legal_basis}</p>
-                          <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
-                            <Link href={`/compare?countries=${code}`} className="px-3 py-1.5 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
-                              🔄 Comparar
-                            </Link>
-                            <button onClick={() => copyToClipboard(entry.id, entry.topic)} className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                              {copiedId === entry.id ? '✓ Copiado!' : '🔗 Compartilhar'}
-                            </button>
-                          </div>
-                        </>
-                      )}
-                      {!isExpanded && <p className="text-xs text-gray-400 mt-3">Clique para expandir</p>}
-                    </div>
-
-                    {/* Bottom corner */}
-                    <div className="topic-card-corner topic-card-corner-bottom">
-                      <div className={`status-badge ${config.badgeClass} text-white w-10 h-10 text-lg`}>{config.icon}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {filteredEntries.length === 0 && (
-              <div className="text-center py-12 card">
-                <span className="text-4xl mb-4 block">🔍</span>
-                <p className="text-gray-500 dark:text-gray-400">Nenhum tópico encontrado</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </main>
   );
 }
